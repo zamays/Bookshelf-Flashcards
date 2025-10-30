@@ -88,15 +88,15 @@ def main():
         print(f"✓ Added '{book.title}' by {book.author} (marked as {status})")
     
     elif command == "list":
-        include_unread = "--read-only" not in sys.argv
-        books = library.get_books(include_unread=include_unread)
+        read_only = "--read-only" in sys.argv
+        books = library.get_books(include_unread=not read_only)
         
-        if include_unread:
-            print_books(books, "All Books in Library")
-        else:
+        if read_only:
             print_books(books, "Books You Have Read")
+        else:
+            print_books(books, "All Books in Library")
         
-        if include_unread:
+        if not read_only:
             read_count = sum(1 for b in books if b.is_read)
             unread_count = len(books) - read_count
             print(f"\nTotal: {len(books)} books ({read_count} read, {unread_count} unread)")

@@ -2,7 +2,6 @@
 Main CLI application for Bookshelf Flashcards.
 """
 import argparse
-import sys
 import os
 from typing import Optional
 

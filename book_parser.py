@@ -1,10 +1,10 @@
 """
 Book parser module for reading book titles from files.
 """
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 
-def parse_book_file(file_path: str) -> List[Tuple[str, str]]:
+def parse_book_file(file_path: str) -> List[Tuple[str, Optional[str]]]:
     """
     Parse a file containing book titles and optional authors.
     
@@ -18,6 +18,11 @@ def parse_book_file(file_path: str) -> List[Tuple[str, str]]:
         
     Returns:
         List of tuples (title, author or None)
+        
+    Raises:
+        FileNotFoundError: If the file does not exist
+        PermissionError: If the file cannot be read
+        UnicodeDecodeError: If the file encoding is invalid
     """
     books = []
     

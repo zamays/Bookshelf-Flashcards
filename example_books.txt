@@ -1,0 +1,18 @@
+# Example book list file
+# Format options:
+# - "Title by Author"
+# - "Title - Author"  
+# - "Title" (will prompt for author)
+
+# Classic Literature
+1984 by George Orwell
+To Kill a Mockingbird by Harper Lee
+The Great Gatsby by F. Scott Fitzgerald
+
+# Science Fiction
+Dune by Frank Herbert
+Neuromancer by William Gibson
+
+# Non-Fiction
+Sapiens by Yuval Noah Harari
+Thinking, Fast and Slow by Daniel Kahneman

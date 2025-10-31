@@ -1,7 +1,7 @@
 #!/bin/bash
 # Setup script for Bookshelf-Flashcards
 
-set -e  # Exit on error
+set -euo pipefail  # Exit on error, undefined variables, and pipe failures
 
 echo "=========================================="
 echo "Bookshelf-Flashcards Setup"
@@ -57,8 +57,8 @@ if [ ! -f .env ]; then
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             read -p "Enter your OpenAI API key: " api_key
             if [ -n "$api_key" ]; then
-                # Escape special characters for sed by using a different delimiter
-                # and writing directly to the file with printf
+                # Write the API key to the newly created .env file
+                # This is safe because we just created it from .env.example above
                 printf "# OpenAI API Key for generating book summaries\nOPENAI_API_KEY=%s\n" "$api_key" > .env
                 echo "✓ API key saved to .env"
             fi

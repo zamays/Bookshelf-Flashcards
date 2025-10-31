@@ -20,6 +20,16 @@ PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.v
 echo "✓ Found Python $PYTHON_VERSION"
 echo ""
 
+# Check pip3 availability
+echo "Checking pip3..."
+if ! command -v pip3 &> /dev/null; then
+    echo "❌ Error: pip3 is not installed."
+    echo "Please install pip3 (Python package manager)."
+    exit 1
+fi
+echo "✓ Found pip3"
+echo ""
+
 # Install dependencies
 echo "Installing dependencies..."
 if pip3 install -r requirements.txt; then
@@ -39,23 +49,24 @@ if [ ! -f .env ]; then
     echo "⚠️  IMPORTANT: Edit .env and add your OpenAI API key"
     echo "   The application can run without it, but won't generate summaries."
     echo ""
-    read -p "Do you have an OpenAI API key to add now? (y/n) " -n 1 -r
-    echo ""
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        read -p "Enter your OpenAI API key: " api_key
-        if [ ! -z "$api_key" ]; then
-            # Use sed to replace the placeholder in .env
-            if [[ "$OSTYPE" == "darwin"* ]]; then
-                # macOS
-                sed -i '' "s/your_api_key_here/$api_key/" .env
-            else
-                # Linux
-                sed -i "s/your_api_key_here/$api_key/" .env
+    
+    # Check if running in interactive mode
+    if [ -t 0 ]; then
+        read -p "Do you have an OpenAI API key to add now? (y/n) " -n 1 -r
+        echo ""
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            read -p "Enter your OpenAI API key: " api_key
+            if [ -n "$api_key" ]; then
+                # Escape special characters for sed by using a different delimiter
+                # and writing directly to the file with printf
+                printf "# OpenAI API Key for generating book summaries\nOPENAI_API_KEY=%s\n" "$api_key" > .env
+                echo "✓ API key saved to .env"
             fi
-            echo "✓ API key saved to .env"
+        else
+            echo "You can add it later by editing the .env file"
         fi
     else
-        echo "You can add it later by editing the .env file"
+        echo "Non-interactive mode detected. You can add your API key later by editing the .env file"
     fi
 else
     echo "✓ .env file already exists"

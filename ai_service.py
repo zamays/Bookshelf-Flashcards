@@ -19,7 +19,7 @@ class SummaryGenerator:
         """
         load_dotenv()
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
-        if not self.api_key:
+        if not self.api_key or self.api_key == "your_api_key_here":
             raise ValueError(
                 "OpenAI API key not found. Please set OPENAI_API_KEY environment variable "
                 "or create a .env file with your API key."

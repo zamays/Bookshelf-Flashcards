@@ -1,0 +1,90 @@
+#!/bin/bash
+# Setup script for Bookshelf-Flashcards
+
+set -e  # Exit on error
+
+echo "=========================================="
+echo "Bookshelf-Flashcards Setup"
+echo "=========================================="
+echo ""
+
+# Check Python version
+echo "Checking Python version..."
+if ! command -v python3 &> /dev/null; then
+    echo "❌ Error: Python 3 is not installed."
+    echo "Please install Python 3.7 or later."
+    exit 1
+fi
+
+PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+echo "✓ Found Python $PYTHON_VERSION"
+echo ""
+
+# Install dependencies
+echo "Installing dependencies..."
+if pip3 install -r requirements.txt; then
+    echo "✓ Dependencies installed successfully"
+else
+    echo "❌ Failed to install dependencies"
+    exit 1
+fi
+echo ""
+
+# Setup .env file
+echo "Setting up environment configuration..."
+if [ ! -f .env ]; then
+    cp .env.example .env
+    echo "✓ Created .env file from .env.example"
+    echo ""
+    echo "⚠️  IMPORTANT: Edit .env and add your OpenAI API key"
+    echo "   The application can run without it, but won't generate summaries."
+    echo ""
+    read -p "Do you have an OpenAI API key to add now? (y/n) " -n 1 -r
+    echo ""
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        read -p "Enter your OpenAI API key: " api_key
+        if [ ! -z "$api_key" ]; then
+            # Use sed to replace the placeholder in .env
+            if [[ "$OSTYPE" == "darwin"* ]]; then
+                # macOS
+                sed -i '' "s/your_api_key_here/$api_key/" .env
+            else
+                # Linux
+                sed -i "s/your_api_key_here/$api_key/" .env
+            fi
+            echo "✓ API key saved to .env"
+        fi
+    else
+        echo "You can add it later by editing the .env file"
+    fi
+else
+    echo "✓ .env file already exists"
+fi
+echo ""
+
+# Test the installation
+echo "Testing installation..."
+if python3 bookshelf.py --help > /dev/null 2>&1; then
+    echo "✓ Application is ready to use!"
+else
+    echo "❌ There was a problem with the installation"
+    exit 1
+fi
+echo ""
+
+echo "=========================================="
+echo "Setup Complete!"
+echo "=========================================="
+echo ""
+echo "Quick Start:"
+echo "  1. Add books from the example file:"
+echo "     python3 bookshelf.py add-file example_books.txt"
+echo ""
+echo "  2. View your bookshelf:"
+echo "     python3 bookshelf.py list"
+echo ""
+echo "  3. Start flashcard mode:"
+echo "     python3 bookshelf.py flashcard"
+echo ""
+echo "For more information, see README.md"
+echo ""

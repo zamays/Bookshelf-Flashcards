@@ -1,6 +1,27 @@
 # Bookshelf-Flashcards
 A helpful tool to refresh one's memory of the books that they have read on their bookshelf. Too often do people read a book and never think about it again. By keeping the stories in recent memory, their messages become more useful.
 
+## 🚀 Quick Start
+
+**Get started in under 2 minutes!**
+
+```bash
+# 1. Clone and navigate to the repository
+git clone https://github.com/zamays/Bookshelf-Flashcards.git
+cd Bookshelf-Flashcards
+
+# 2. Run the automated setup
+./setup.sh
+
+# 3. Try it out with example books
+python3 bookshelf.py add-file example_books.txt
+python3 bookshelf.py list
+```
+
+💡 **No OpenAI API key?** No problem! The app works without it - you just won't get AI-generated summaries.
+
+📖 See [QUICKSTART.md](QUICKSTART.md) for more details and troubleshooting.
+
 ## Features
 
 - 📚 **Import from File**: Add multiple books at once from a text file
@@ -12,6 +33,20 @@ A helpful tool to refresh one's memory of the books that they have read on their
 
 ## Installation
 
+### Automated Setup (Recommended)
+
+```bash
+git clone https://github.com/zamays/Bookshelf-Flashcards.git
+cd Bookshelf-Flashcards
+./setup.sh
+```
+
+The setup script will install dependencies and configure the application for you.
+
+### Manual Setup
+
+If you prefer to set up manually:
+
 1. Clone the repository:
 ```bash
 git clone https://github.com/zamays/Bookshelf-Flashcards.git
@@ -20,14 +55,16 @@ cd Bookshelf-Flashcards
 
 2. Install dependencies:
 ```bash
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
-3. Set up your OpenAI API key:
+3. Set up your configuration (optional):
 ```bash
 cp .env.example .env
-# Edit .env and add your OpenAI API key
+# Edit .env and add your OpenAI API key (optional)
 ```
+
+**Note:** The application works without an OpenAI API key, but won't generate book summaries.
 
 ## Usage
 
@@ -36,7 +73,7 @@ cp .env.example .env
 Create a text file with book titles (see `example_books.txt` for format):
 
 ```bash
-python bookshelf.py add-file books.txt
+python3 bookshelf.py add-file books.txt
 ```
 
 **File format options:**
@@ -47,13 +84,13 @@ python bookshelf.py add-file books.txt
 ### Add a Single Book
 
 ```bash
-python bookshelf.py add
+python3 bookshelf.py add
 ```
 
 ### List All Books
 
 ```bash
-python bookshelf.py list
+python3 bookshelf.py list
 ```
 
 ### Flashcard Mode
@@ -61,7 +98,7 @@ python bookshelf.py list
 Review your books in an interactive flashcard session:
 
 ```bash
-python bookshelf.py flashcard
+python3 bookshelf.py flashcard
 ```
 
 This mode will display each book's title and author, then reveal the summary when you press Enter. Perfect for refreshing your memory!
@@ -70,13 +107,13 @@ This mode will display each book's title and author, then reveal the summary whe
 
 ```bash
 # Add books from the example file
-python bookshelf.py add-file example_books.txt
+python3 bookshelf.py add-file example_books.txt
 
 # View your bookshelf
-python bookshelf.py list
+python3 bookshelf.py list
 
 # Start flashcard review
-python bookshelf.py flashcard
+python3 bookshelf.py flashcard
 ```
 
 ## Configuration
@@ -86,7 +123,7 @@ python bookshelf.py flashcard
 By default, books are stored in `bookshelf.db` in the current directory. You can specify a different location:
 
 ```bash
-python bookshelf.py --db /path/to/your/database.db list
+python3 bookshelf.py --db /path/to/your/database.db list
 ```
 
 ### API Key
@@ -96,6 +133,8 @@ The application requires an OpenAI API key for generating summaries. Set it in a
 ```
 OPENAI_API_KEY=your_api_key_here
 ```
+
+**The application will run without an API key** - you can add and organize books, but summaries won't be generated automatically.
 
 ## Project Structure
 

@@ -13,14 +13,25 @@ cd Bookshelf-Flashcards
 # 2. Run the automated setup
 ./setup.sh
 
-# 3. Try it out with example books
-python3 bookshelf.py add-file example_books.txt
-python3 bookshelf.py list
+# 3. Try it out with example books (using make)
+make run-example
+# OR manually:
+# python3 bookshelf.py add-file example_books.txt
+# python3 bookshelf.py list
 ```
 
 💡 **No OpenAI API key?** No problem! The app works without it - you just won't get AI-generated summaries.
 
 📖 See [QUICKSTART.md](QUICKSTART.md) for more details and troubleshooting.
+
+### Make Commands
+
+For convenience, use `make` commands:
+- `make help` - Show all available commands
+- `make setup` - Run the setup script
+- `make run-example` - Add example books and display them
+- `make list` - List all books
+- `make clean` - Remove database and cache files
 
 ## Features
 

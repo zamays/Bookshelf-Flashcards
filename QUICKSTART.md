@@ -9,11 +9,17 @@ Get up and running with Bookshelf-Flashcards in under 2 minutes!
 
 ## One-Command Setup
 
+### Using the setup script:
 ```bash
 ./setup.sh
 ```
 
-This script will:
+### Using make (alternative):
+```bash
+make setup
+```
+
+This will:
 1. Check your Python installation
 2. Install all required dependencies
 3. Create a `.env` configuration file
@@ -36,8 +42,12 @@ nano .env  # or use your favorite editor
 
 ## Try It Out
 
-Add the example books and start exploring:
+### Quick way (using make):
+```bash
+make run-example  # Adds example books and displays them
+```
 
+### Manual way:
 ```bash
 # Add example books (no API key needed!)
 python3 bookshelf.py add-file example_books.txt

@@ -177,16 +177,19 @@ def main():
         epilog="""
 Examples:
   # Add books from a file
-  python bookshelf.py add-file books.txt
+  python3 bookshelf.py add-file books.txt
   
   # Add a book interactively
-  python bookshelf.py add
+  python3 bookshelf.py add
   
   # View all books
-  python bookshelf.py list
+  python3 bookshelf.py list
   
   # Start flashcard mode
-  python bookshelf.py flashcard
+  python3 bookshelf.py flashcard
+  
+  # Suppress API key warnings
+  python3 bookshelf.py --quiet list
         """
     )
     

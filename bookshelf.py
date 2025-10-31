@@ -13,10 +13,11 @@ from book_parser import parse_book_file
 class BookshelfApp:
     """Main application class for managing bookshelf flashcards."""
     
-    def __init__(self, db_path: str = "bookshelf.db"):
+    def __init__(self, db_path: str = "bookshelf.db", quiet: bool = False):
         """Initialize the application."""
         self.db = BookDatabase(db_path)
         self.ai_service = None
+        self.quiet = quiet
         self._init_ai_service()
     
     def _init_ai_service(self):
@@ -24,8 +25,9 @@ class BookshelfApp:
         try:
             self.ai_service = SummaryGenerator()
         except ValueError as e:
-            print(f"Warning: {e}")
-            print("AI summary generation will not be available.")
+            if not self.quiet:
+                print(f"Warning: {e}")
+                print("AI summary generation will not be available.")
     
     def add_book_from_file(self, file_path: str):
         """
@@ -175,16 +177,19 @@ def main():
         epilog="""
 Examples:
   # Add books from a file
-  python bookshelf.py add-file books.txt
+  python3 bookshelf.py add-file books.txt
   
   # Add a book interactively
-  python bookshelf.py add
+  python3 bookshelf.py add
   
   # View all books
-  python bookshelf.py list
+  python3 bookshelf.py list
   
   # Start flashcard mode
-  python bookshelf.py flashcard
+  python3 bookshelf.py flashcard
+  
+  # Suppress API key warnings
+  python3 bookshelf.py --quiet list
         """
     )
     
@@ -203,6 +208,11 @@ Examples:
         default='bookshelf.db',
         help='Database file path (default: bookshelf.db)'
     )
+    parser.add_argument(
+        '--quiet', '-q',
+        action='store_true',
+        help='Suppress warnings (e.g., missing API key warning)'
+    )
     
     args = parser.parse_args()
     
@@ -211,7 +221,7 @@ Examples:
         parser.error("add-file command requires a file path")
     
     # Create application instance
-    app = BookshelfApp(args.db)
+    app = BookshelfApp(args.db, quiet=args.quiet)
     
     try:
         if args.command == 'add-file':

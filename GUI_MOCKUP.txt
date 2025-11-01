@@ -1,0 +1,150 @@
+# GUI Visual Layout
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Bookshelf Flashcards                                                    ▢ □ × │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ File                    View                    Help                        │
+│  ├─ Add Book             ├─ Book List            ├─ About                   │
+│  ├─ Add Books from File  └─ Flashcard Mode                                  │
+│  └─ Exit                                                                     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ ┌─────────────────────────────────────────────────────────────────────────┐ │
+│ │ [ Book List ] [ Flashcard Mode ]                                        │ │
+│ └─────────────────────────────────────────────────────────────────────────┘ │
+│                                                                               │
+│                          BOOK LIST TAB VIEW                                  │
+│ ┌─────────────────────────────────────────────────────────────────────────┐ │
+│ │ [Add Book] [Add from File] [Refresh] [View Details]                    │ │
+│ ├─────────────────────────────────────────────────────────────────────────┤ │
+│ │                                                                         │ │
+│ │  1984 - George Orwell (no summary)                                     │ │
+│ │  To Kill a Mockingbird - Harper Lee                                    │ │
+│ │  The Great Gatsby - F. Scott Fitzgerald                                │ │
+│ │  Dune - Frank Herbert                                                  │ │
+│ │  Neuromancer - William Gibson                                          │ │
+│ │  Sapiens - Yuval Noah Harari                                           │ │
+│ │  Thinking, Fast and Slow - Daniel Kahneman                             │ │
+│ │                                                                         │ │
+│ │                                                                         │ │
+│ │                                                                      ▲  │ │
+│ │                                                                      █  │ │
+│ │                                                                      ▼  │ │
+│ ├─────────────────────────────────────────────────────────────────────────┤ │
+│ │ Total books: 7                                                          │ │
+│ └─────────────────────────────────────────────────────────────────────────┘ │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Database: bookshelf.db                                                      │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+                        FLASHCARD MODE TAB VIEW
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Bookshelf Flashcards                                                    ▢ □ × │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ File                    View                    Help                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ ┌─────────────────────────────────────────────────────────────────────────┐ │
+│ │ [ Book List ] [✓Flashcard Mode ]                                       │ │
+│ └─────────────────────────────────────────────────────────────────────────┘ │
+│                                                                               │
+│  Review your books in flashcard mode. Click 'Start' to begin.               │
+│                                                                               │
+│ ┌─ Flashcard ──────────────────────────────────────────────────────────────┐ │
+│ │                                                                          │ │
+│ │                         The Great Gatsby                                │ │
+│ │                                                                          │ │
+│ │                      by F. Scott Fitzgerald                             │ │
+│ │                                                                          │ │
+│ │  ┌────────────────────────────────────────────────────────────────┐  ▲ │ │
+│ │  │ Set in the Jazz Age on Long Island, the novel tells the story │  █ │ │
+│ │  │ of Jay Gatsby's obsessive quest to reunite with his former    │  │ │ │
+│ │  │ love, Daisy Buchanan. Through narrator Nick Carraway, Fitzg-  │  │ │ │
+│ │  │ erald explores themes of wealth, class, love, idealism and the │  │ │ │
+│ │  │ American Dream. The story reveals the corruption and moral     │  │ │ │
+│ │  │ decay hiding beneath the glittering surface of the wealthy     │  ▼ │ │
+│ │  │ elite...                                                        │    │ │
+│ │  └────────────────────────────────────────────────────────────────┘    │ │
+│ │                                                                          │ │
+│ └──────────────────────────────────────────────────────────────────────────┘ │
+│                                                                               │
+│                  [◀ Previous] [Hide Summary] [Next ▶]                        │
+│                                                                               │
+│                             Card 3 of 7                                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Database: bookshelf.db                                                      │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+                        ADD BOOK DIALOG
+
+┌────────────────────────────────────┐
+│ Add New Book                     × │
+├────────────────────────────────────┤
+│                                    │
+│  Book Title:  [________________]   │
+│                                    │
+│  Author:      [________________]   │
+│                                    │
+│                                    │
+│        [Add Book]    [Cancel]      │
+│                                    │
+└────────────────────────────────────┘
+
+
+                        BOOK DETAILS DIALOG
+
+┌──────────────────────────────────────────────────────────────┐
+│ Book Details                                               × │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Title:    The Great Gatsby                                 │
+│  Author:   F. Scott Fitzgerald                              │
+│  Added:    2025-11-01 01:23:37                              │
+│                                                              │
+│ ┌─ Summary ────────────────────────────────────────────────┐ │
+│ │                                                          │ │
+│ │ Set in the Jazz Age on Long Island, the novel tells    │ │
+│ │ the story of Jay Gatsby's obsessive quest to reunite   │ │
+│ │ with his former love, Daisy Buchanan. Through narrator │ │
+│ │ Nick Carraway, Fitzgerald explores themes of wealth,   │ │
+│ │ class, love, idealism and the American Dream...        │ │
+│ │                                                          │ │
+│ │                                                        ▲ │ │
+│ │                                                        █ │ │
+│ │                                                        ▼ │ │
+│ └──────────────────────────────────────────────────────────┘ │
+│                                                              │
+│                         [Close]                              │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+## Key Features Illustrated:
+
+### Main Window
+- **Menu Bar**: File, View, and Help menus for easy navigation
+- **Tab Interface**: Switch between Book List and Flashcard Mode
+- **Status Bar**: Shows current database file path
+
+### Book List Tab
+- **Toolbar**: Quick access buttons for common operations
+- **Scrollable List**: View all books with scroll bar for large collections
+- **Book Counter**: Shows total number of books
+- **Double-click Support**: Quick access to book details
+
+### Flashcard Mode Tab
+- **Large Display**: Easy-to-read title and author
+- **Scrollable Summary**: Accommodates long summaries
+- **Navigation Controls**: Previous/Next buttons for easy browsing
+- **Reveal Toggle**: Show/hide summary to test memory
+- **Progress Indicator**: Track your position in the deck
+
+### Dialogs
+- **Add Book**: Simple form for adding single books
+- **Book Details**: Full information display with summary generation option
+- **Progress Dialogs**: Visual feedback when adding multiple books
+
+## Color Scheme
+The GUI uses standard system colors for a native look and feel on any platform.

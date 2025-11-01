@@ -3,8 +3,6 @@ GUI application for Bookshelf Flashcards.
 """
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog, scrolledtext, simpledialog
-import os
-from typing import Optional
 
 from database import BookDatabase
 from ai_service import SummaryGenerator
@@ -198,15 +196,20 @@ class BookshelfGUI:
                 messagebox.showwarning("Missing Information", "Please enter an author name.")
                 return
             
+            # Check if book already exists before adding
+            existing = self.db.search_books_by_title(title)
+            is_duplicate = any(book['author'] == author for book in existing)
+            
+            if is_duplicate:
+                messagebox.showinfo("Duplicate Book", "This book already exists in your bookshelf.")
+                dialog.destroy()
+                self._refresh_book_list()
+                return
+            
             status_label.config(text="Adding book...")
             dialog.update()
             
             book_id = self.db.add_book(title, author)
-            
-            if book_id == -1:
-                messagebox.showinfo("Duplicate Book", "This book already exists in your bookshelf.")
-                dialog.destroy()
-                return
             
             # Generate summary if AI service is available
             if self.ai_service:
@@ -217,7 +220,7 @@ class BookshelfGUI:
                     self.db.update_summary(book_id, summary)
                     status_label.config(text="Book added with summary!")
                 except Exception as e:
-                    status_label.config(text=f"Book added (summary generation failed)")
+                    status_label.config(text=f"Book added (summary generation failed: {str(e)})")
             else:
                 status_label.config(text="Book added (no AI summary available)")
             
@@ -285,12 +288,13 @@ class BookshelfGUI:
                         skipped_count += 1
                         continue
                 
-                book_id = self.db.add_book(title, author)
-                
-                if book_id == -1:
+                # Check for duplicates before adding
+                existing = self.db.search_books_by_title(title)
+                if any(book['author'] == author for book in existing):
                     skipped_count += 1
                     continue
                 
+                book_id = self.db.add_book(title, author)
                 added_count += 1
                 
                 # Generate summary if AI service is available

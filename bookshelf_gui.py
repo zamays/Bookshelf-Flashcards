@@ -275,7 +275,7 @@ class BookshelfGUI:
                     summary = self.ai_service.generate_summary(title, author)
                     self.db.update_summary(book_id, summary)
                     status_label.config(text="Book added with summary!")
-                except (ValueError, Exception) as e:
+                except Exception as e:
                     status_label.config(
                         text=f"Book added (summary generation failed: {str(e)})"
                     )
@@ -370,7 +370,7 @@ class BookshelfGUI:
                     try:
                         summary = self.ai_service.generate_summary(title, author)
                         self.db.update_summary(book_id, summary)
-                    except (ValueError, Exception):
+                    except Exception:
                         pass  # Continue even if summary generation fails
 
             progress_bar["value"] = len(books)
@@ -386,7 +386,7 @@ class BookshelfGUI:
 
             messagebox.showinfo("Books Added", message)
 
-        except (OSError, ValueError, Exception) as e:
+        except Exception as e:
             messagebox.showerror("Error", f"Error reading file: {str(e)}")
 
     def _refresh_book_list(self):
@@ -490,7 +490,7 @@ class BookshelfGUI:
 
                     self._refresh_book_list()
                     messagebox.showinfo("Success", "Summary generated successfully!")
-                except (ValueError, Exception) as e:
+                except Exception as e:
                     messagebox.showerror(
                         "Error", f"Failed to generate summary: {str(e)}"
                     )

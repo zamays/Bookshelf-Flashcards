@@ -89,7 +89,7 @@ class BookshelfApp:
                 summary = self.ai_service.generate_summary(title, author)
                 self.db.update_summary(book_id, summary)
                 print("✓ Summary generated and saved.")
-            except (ValueError, Exception) as e:
+            except Exception as e:
                 print(f"Error generating summary: {e}")
         else:
             print("✓ Book added (no summary - AI service not available)")

@@ -59,7 +59,7 @@ class SummaryGenerator:
         try:
             response = self.model.generate_content(prompt)
             if not response or not response.text:
-                raise ValueError("No content generated from the AI model") from None
+                raise ValueError("No content generated from the AI model")
             return response.text.strip()
         except Exception as e:
             raise ValueError(f"Error generating summary: {str(e)}") from e

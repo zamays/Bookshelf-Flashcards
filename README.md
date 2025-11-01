@@ -20,7 +20,7 @@ make run-example
 # python3 bookshelf.py list
 ```
 
-💡 **No OpenAI API key?** No problem! The app works without it - you just won't get AI-generated summaries.
+💡 **No Google AI Studio API key?** No problem! The app works without it - you just won't get AI-generated summaries.
 
 📖 See [QUICKSTART.md](QUICKSTART.md) for more details and troubleshooting.
 
@@ -36,7 +36,7 @@ For convenience, use `make` commands:
 ## Features
 
 - 📚 **Import from File**: Add multiple books at once from a text file
-- 🤖 **AI-Powered Summaries**: Automatically generates book summaries using OpenAI
+- 🤖 **AI-Powered Summaries**: Automatically generates book summaries using Google AI Studio
 - 🗃️ **SQLite Database**: Stores books and summaries locally
 - 💭 **Flashcard Mode**: Interactive interface to refresh your memory
 - ➕ **Easy Addition**: Add books interactively or from a file
@@ -72,10 +72,10 @@ pip3 install -r requirements.txt
 3. Set up your configuration (optional):
 ```bash
 cp .env.example .env
-# Edit .env and add your OpenAI API key (optional)
+# Edit .env and add your Google AI Studio API key (optional)
 ```
 
-**Note:** The application works without an OpenAI API key, but won't generate book summaries.
+**Note:** The application works without a Google AI Studio API key, but won't generate book summaries.
 
 ## Usage
 
@@ -139,10 +139,10 @@ python3 bookshelf.py --db /path/to/your/database.db list
 
 ### API Key
 
-The application requires an OpenAI API key for generating summaries. Set it in a `.env` file:
+The application requires a Google AI Studio API key for generating summaries. Set it in a `.env` file:
 
 ```
-OPENAI_API_KEY=your_api_key_here
+GOOGLE_AI_API_KEY=your_api_key_here
 ```
 
 **The application will run without an API key** - you can add and organize books, but summaries won't be generated automatically.
@@ -151,7 +151,7 @@ OPENAI_API_KEY=your_api_key_here
 
 - `bookshelf.py` - Main CLI application
 - `database.py` - Database operations (SQLite)
-- `ai_service.py` - OpenAI integration for summaries
+- `ai_service.py` - Google AI Studio integration for summaries
 - `book_parser.py` - Parse book files
 - `example_books.txt` - Example book list
 - `requirements.txt` - Python dependencies
@@ -159,7 +159,7 @@ OPENAI_API_KEY=your_api_key_here
 ## Requirements
 
 - Python 3.7+
-- OpenAI API key (for summary generation)
+- Google AI Studio API key (for summary generation)
 
 ## License
 

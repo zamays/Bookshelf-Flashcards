@@ -44,6 +44,8 @@ Keep it to about 200-300 words so it can serve as a memory refresher."""
         
         try:
             response = self.model.generate_content(prompt)
+            if not response or not response.text:
+                raise Exception("No content generated from the AI model")
             return response.text.strip()
         except Exception as e:
             raise Exception(f"Error generating summary: {str(e)}")

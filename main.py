@@ -6,6 +6,9 @@ Provides unified access to both GUI and CLI interfaces.
 
 import sys
 
+# Valid CLI commands from bookshelf.py
+CLI_COMMANDS = ['add', 'add-file', 'list', 'flashcard']
+
 
 def main():
     """Main entry point for the application."""
@@ -27,9 +30,7 @@ def main():
                 print("  python3 main.py --mode cli add-file books.txt  # Launch CLI and add books")
                 sys.exit(1)
             # Remove --mode and its value from sys.argv
-            # After first pop, the mode value moves to mode_idx position
-            sys.argv.pop(mode_idx)  # Remove --mode
-            sys.argv.pop(mode_idx)  # Remove the mode value (which is now at mode_idx)
+            del sys.argv[mode_idx:mode_idx+2]
         else:
             # --mode provided but no value
             print("Error: --mode requires a value ('gui' or 'cli').", file=sys.stderr)
@@ -48,7 +49,7 @@ def main():
             mode = 'gui'
         else:
             # Check if first remaining arg looks like a CLI command
-            if sys.argv[1] in ['add', 'add-file', 'list', 'flashcard']:
+            if sys.argv[1] in CLI_COMMANDS:
                 mode = 'cli'
             else:
                 mode = 'gui'

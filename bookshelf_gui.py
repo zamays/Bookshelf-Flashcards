@@ -16,7 +16,12 @@ class BookshelfGUI:
         """Initialize the GUI application."""
         self.root = root
         self.root.title("Bookshelf Flashcards")
-        self.root.geometry("900x700")
+        self.root.geometry("800x600")
+        
+        # Configure style for minimalist look
+        style = ttk.Style()
+        style.configure('Toolbar.TButton', padding=6)
+        style.configure('Nav.TButton', padding=10)
         
         self.db_path = db_path
         self.db = BookDatabase(db_path)
@@ -68,7 +73,7 @@ class BookshelfGUI:
         """Create the main interface."""
         # Create notebook (tabbed interface)
         self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(fill='both', expand=True, padx=10, pady=10)
+        self.notebook.pack(fill='both', expand=True, padx=5, pady=5)
         
         # Book List Tab
         self.list_frame = ttk.Frame(self.notebook)
@@ -86,103 +91,165 @@ class BookshelfGUI:
     
     def _create_book_list_tab(self):
         """Create the book list tab."""
-        # Toolbar
+        # Toolbar with cleaner spacing
         toolbar = ttk.Frame(self.list_frame)
-        toolbar.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
+        toolbar.pack(side=tk.TOP, fill=tk.X, padx=10, pady=8)
         
-        ttk.Button(toolbar, text="Add Book", command=self._show_add_book_dialog).pack(side=tk.LEFT, padx=2)
-        ttk.Button(toolbar, text="Add from File", command=self._add_books_from_file).pack(side=tk.LEFT, padx=2)
-        ttk.Button(toolbar, text="Refresh", command=self._refresh_book_list).pack(side=tk.LEFT, padx=2)
-        ttk.Button(toolbar, text="View Details", command=self._view_book_details).pack(side=tk.LEFT, padx=2)
+        ttk.Button(toolbar, text="+ Add Book", command=self._show_add_book_dialog, style='Toolbar.TButton').pack(side=tk.LEFT, padx=3)
+        ttk.Button(toolbar, text="📁 Add from File", command=self._add_books_from_file, style='Toolbar.TButton').pack(side=tk.LEFT, padx=3)
+        ttk.Button(toolbar, text="🔄 Refresh", command=self._refresh_book_list, style='Toolbar.TButton').pack(side=tk.LEFT, padx=3)
+        
+        # Separator
+        ttk.Separator(toolbar, orient='vertical').pack(side=tk.LEFT, fill='y', padx=10)
+        
+        ttk.Button(toolbar, text="View Details", command=self._view_book_details, style='Toolbar.TButton').pack(side=tk.LEFT, padx=3)
         
         # Book list with scrollbar
         list_container = ttk.Frame(self.list_frame)
-        list_container.pack(fill='both', expand=True, padx=5, pady=5)
+        list_container.pack(fill='both', expand=True, padx=10, pady=5)
         
         scrollbar = ttk.Scrollbar(list_container)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
-        self.book_listbox = tk.Listbox(list_container, yscrollcommand=scrollbar.set, font=('Arial', 10))
+        self.book_listbox = tk.Listbox(
+            list_container, 
+            yscrollcommand=scrollbar.set, 
+            font=('Segoe UI', 10),
+            borderwidth=1,
+            relief='solid',
+            selectbackground='#0078D4',
+            activestyle='none'
+        )
         self.book_listbox.pack(side=tk.LEFT, fill='both', expand=True)
         self.book_listbox.bind('<Double-Button-1>', lambda e: self._view_book_details())
         
         scrollbar.config(command=self.book_listbox.yview)
         
-        # Book count label
-        self.book_count_label = ttk.Label(self.list_frame, text="Total books: 0")
-        self.book_count_label.pack(side=tk.BOTTOM, pady=5)
+        # Book count label with better styling
+        footer = ttk.Frame(self.list_frame)
+        footer.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=8)
+        self.book_count_label = ttk.Label(footer, text="Total books: 0", font=('Segoe UI', 9))
+        self.book_count_label.pack(side=tk.LEFT)
     
     def _create_flashcard_tab(self):
         """Create the flashcard tab."""
-        # Instructions
+        # Instructions with better styling
         instructions = ttk.Label(
             self.flashcard_frame,
-            text="Review your books in flashcard mode. Click 'Start' to begin.",
-            font=('Arial', 10)
+            text="Review your books in flashcard mode",
+            font=('Segoe UI', 11)
         )
-        instructions.pack(pady=20)
+        instructions.pack(pady=15)
         
-        # Card display frame
-        self.card_frame = ttk.LabelFrame(self.flashcard_frame, text="Flashcard", padding=20)
-        self.card_frame.pack(fill='both', expand=True, padx=20, pady=10)
+        # Card display frame with minimalist border
+        self.card_frame = ttk.LabelFrame(self.flashcard_frame, text="", padding=25, relief='flat')
+        self.card_frame.pack(fill='both', expand=True, padx=25, pady=10)
         
-        # Card content
-        self.card_title_label = ttk.Label(self.card_frame, text="", font=('Arial', 16, 'bold'), wraplength=700)
-        self.card_title_label.pack(pady=10)
+        # Card content with improved fonts
+        self.card_title_label = ttk.Label(
+            self.card_frame, 
+            text="", 
+            font=('Segoe UI', 18, 'bold'), 
+            wraplength=650
+        )
+        self.card_title_label.pack(pady=8)
         
-        self.card_author_label = ttk.Label(self.card_frame, text="", font=('Arial', 12), wraplength=700)
+        self.card_author_label = ttk.Label(
+            self.card_frame, 
+            text="", 
+            font=('Segoe UI', 11), 
+            wraplength=650,
+            foreground='#666666'
+        )
         self.card_author_label.pack(pady=5)
         
         self.card_summary_text = scrolledtext.ScrolledText(
             self.card_frame,
             wrap=tk.WORD,
-            height=12,
-            font=('Arial', 10),
-            state='disabled'
+            height=10,
+            font=('Segoe UI', 10),
+            state='disabled',
+            borderwidth=1,
+            relief='solid'
         )
-        self.card_summary_text.pack(fill='both', expand=True, pady=10)
+        self.card_summary_text.pack(fill='both', expand=True, pady=15)
         
-        # Navigation buttons
+        # Navigation buttons with better spacing
         nav_frame = ttk.Frame(self.flashcard_frame)
-        nav_frame.pack(side=tk.BOTTOM, pady=10)
+        nav_frame.pack(side=tk.BOTTOM, pady=15)
         
-        self.prev_button = ttk.Button(nav_frame, text="◀ Previous", command=self._prev_flashcard, state='disabled')
-        self.prev_button.pack(side=tk.LEFT, padx=5)
+        self.prev_button = ttk.Button(
+            nav_frame, 
+            text="◀ Previous", 
+            command=self._prev_flashcard, 
+            state='disabled',
+            style='Nav.TButton'
+        )
+        self.prev_button.pack(side=tk.LEFT, padx=8)
         
-        self.reveal_button = ttk.Button(nav_frame, text="Reveal Summary", command=self._reveal_summary, state='disabled')
-        self.reveal_button.pack(side=tk.LEFT, padx=5)
+        self.reveal_button = ttk.Button(
+            nav_frame, 
+            text="Reveal Summary", 
+            command=self._reveal_summary, 
+            state='disabled',
+            style='Nav.TButton'
+        )
+        self.reveal_button.pack(side=tk.LEFT, padx=8)
         
-        self.next_button = ttk.Button(nav_frame, text="Next ▶", command=self._next_flashcard, state='disabled')
-        self.next_button.pack(side=tk.LEFT, padx=5)
+        self.next_button = ttk.Button(
+            nav_frame, 
+            text="Next ▶", 
+            command=self._next_flashcard, 
+            state='disabled',
+            style='Nav.TButton'
+        )
+        self.next_button.pack(side=tk.LEFT, padx=8)
         
-        self.start_button = ttk.Button(nav_frame, text="Start Flashcards", command=self._start_flashcard_mode)
-        self.start_button.pack(side=tk.LEFT, padx=5)
+        self.start_button = ttk.Button(
+            nav_frame, 
+            text="Start Flashcards", 
+            command=self._start_flashcard_mode,
+            style='Nav.TButton'
+        )
+        self.start_button.pack(side=tk.LEFT, padx=8)
         
-        # Progress label
-        self.progress_label = ttk.Label(self.flashcard_frame, text="")
-        self.progress_label.pack(side=tk.BOTTOM, pady=5)
+        # Progress label with better styling
+        self.progress_label = ttk.Label(
+            self.flashcard_frame, 
+            text="",
+            font=('Segoe UI', 9),
+            foreground='#666666'
+        )
+        self.progress_label.pack(side=tk.BOTTOM, pady=8)
     
     def _show_add_book_dialog(self):
         """Show dialog to add a new book."""
         dialog = tk.Toplevel(self.root)
         dialog.title("Add New Book")
-        dialog.geometry("500x250")
+        dialog.geometry("450x220")
         dialog.transient(self.root)
         dialog.grab_set()
         
+        # Main frame with padding
+        main_frame = ttk.Frame(dialog, padding=20)
+        main_frame.pack(fill='both', expand=True)
+        
         # Title
-        ttk.Label(dialog, text="Book Title:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
-        title_entry = ttk.Entry(dialog, width=40)
-        title_entry.grid(row=0, column=1, padx=10, pady=10)
+        ttk.Label(main_frame, text="Book Title:", font=('Segoe UI', 10)).grid(row=0, column=0, padx=5, pady=10, sticky='w')
+        title_entry = ttk.Entry(main_frame, width=35, font=('Segoe UI', 10))
+        title_entry.grid(row=0, column=1, padx=5, pady=10, sticky='ew')
         title_entry.focus()
         
         # Author
-        ttk.Label(dialog, text="Author:").grid(row=1, column=0, padx=10, pady=10, sticky='e')
-        author_entry = ttk.Entry(dialog, width=40)
-        author_entry.grid(row=1, column=1, padx=10, pady=10)
+        ttk.Label(main_frame, text="Author:", font=('Segoe UI', 10)).grid(row=1, column=0, padx=5, pady=10, sticky='w')
+        author_entry = ttk.Entry(main_frame, width=35, font=('Segoe UI', 10))
+        author_entry.grid(row=1, column=1, padx=5, pady=10, sticky='ew')
+        
+        # Configure grid weights
+        main_frame.columnconfigure(1, weight=1)
         
         # Status label
-        status_label = ttk.Label(dialog, text="", foreground="blue")
+        status_label = ttk.Label(main_frame, text="", foreground="#0078D4", font=('Segoe UI', 9))
         status_label.grid(row=2, column=0, columnspan=2, pady=5)
         
         def add_book():
@@ -228,12 +295,12 @@ class BookshelfGUI:
             messagebox.showinfo("Success", f"Added '{title}' by {author}")
             dialog.destroy()
         
-        # Buttons
-        button_frame = ttk.Frame(dialog)
-        button_frame.grid(row=3, column=0, columnspan=2, pady=20)
+        # Buttons with better spacing
+        button_frame = ttk.Frame(main_frame)
+        button_frame.grid(row=3, column=0, columnspan=2, pady=15)
         
-        ttk.Button(button_frame, text="Add Book", command=add_book).pack(side=tk.LEFT, padx=5)
-        ttk.Button(button_frame, text="Cancel", command=dialog.destroy).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Add Book", command=add_book, style='Toolbar.TButton').pack(side=tk.LEFT, padx=8)
+        ttk.Button(button_frame, text="Cancel", command=dialog.destroy, style='Toolbar.TButton').pack(side=tk.LEFT, padx=8)
     
     def _add_books_from_file(self):
         """Add books from a file."""
@@ -348,27 +415,38 @@ class BookshelfGUI:
         # Create details dialog
         dialog = tk.Toplevel(self.root)
         dialog.title("Book Details")
-        dialog.geometry("600x500")
+        dialog.geometry("550x450")
         dialog.transient(self.root)
         
-        # Book info
-        info_frame = ttk.Frame(dialog)
-        info_frame.pack(fill='x', padx=20, pady=10)
+        # Main frame with padding
+        main_frame = ttk.Frame(dialog, padding=20)
+        main_frame.pack(fill='both', expand=True)
         
-        ttk.Label(info_frame, text="Title:", font=('Arial', 10, 'bold')).grid(row=0, column=0, sticky='w', pady=2)
-        ttk.Label(info_frame, text=book['title'], font=('Arial', 10)).grid(row=0, column=1, sticky='w', pady=2, padx=10)
+        # Book info with better styling
+        info_frame = ttk.Frame(main_frame)
+        info_frame.pack(fill='x', pady=(0, 15))
         
-        ttk.Label(info_frame, text="Author:", font=('Arial', 10, 'bold')).grid(row=1, column=0, sticky='w', pady=2)
-        ttk.Label(info_frame, text=book['author'], font=('Arial', 10)).grid(row=1, column=1, sticky='w', pady=2, padx=10)
+        ttk.Label(info_frame, text="Title:", font=('Segoe UI', 10, 'bold')).grid(row=0, column=0, sticky='w', pady=3)
+        ttk.Label(info_frame, text=book['title'], font=('Segoe UI', 10)).grid(row=0, column=1, sticky='w', pady=3, padx=10)
         
-        ttk.Label(info_frame, text="Added:", font=('Arial', 10, 'bold')).grid(row=2, column=0, sticky='w', pady=2)
-        ttk.Label(info_frame, text=book['created_at'], font=('Arial', 10)).grid(row=2, column=1, sticky='w', pady=2, padx=10)
+        ttk.Label(info_frame, text="Author:", font=('Segoe UI', 10, 'bold')).grid(row=1, column=0, sticky='w', pady=3)
+        ttk.Label(info_frame, text=book['author'], font=('Segoe UI', 10)).grid(row=1, column=1, sticky='w', pady=3, padx=10)
         
-        # Summary
-        summary_frame = ttk.LabelFrame(dialog, text="Summary", padding=10)
-        summary_frame.pack(fill='both', expand=True, padx=20, pady=10)
+        ttk.Label(info_frame, text="Added:", font=('Segoe UI', 10, 'bold')).grid(row=2, column=0, sticky='w', pady=3)
+        ttk.Label(info_frame, text=book['created_at'], font=('Segoe UI', 9), foreground='#666666').grid(row=2, column=1, sticky='w', pady=3, padx=10)
         
-        summary_text = scrolledtext.ScrolledText(summary_frame, wrap=tk.WORD, height=15, font=('Arial', 10))
+        # Summary with cleaner frame
+        summary_frame = ttk.LabelFrame(main_frame, text="Summary", padding=15)
+        summary_frame.pack(fill='both', expand=True, pady=(5, 15))
+        
+        summary_text = scrolledtext.ScrolledText(
+            summary_frame, 
+            wrap=tk.WORD, 
+            height=12, 
+            font=('Segoe UI', 10),
+            borderwidth=1,
+            relief='solid'
+        )
         summary_text.pack(fill='both', expand=True)
         
         if book['summary']:
@@ -380,9 +458,9 @@ class BookshelfGUI:
         
         summary_text.config(state='disabled')
         
-        # Buttons
-        button_frame = ttk.Frame(dialog)
-        button_frame.pack(pady=10)
+        # Buttons with better spacing
+        button_frame = ttk.Frame(main_frame)
+        button_frame.pack(pady=(0, 5))
         
         if not book['summary'] and self.ai_service:
             def generate_summary():
@@ -406,9 +484,9 @@ class BookshelfGUI:
                 except Exception as e:
                     messagebox.showerror("Error", f"Failed to generate summary: {str(e)}")
             
-            ttk.Button(button_frame, text="Generate Summary", command=generate_summary).pack(side=tk.LEFT, padx=5)
+            ttk.Button(button_frame, text="Generate Summary", command=generate_summary, style='Toolbar.TButton').pack(side=tk.LEFT, padx=8)
         
-        ttk.Button(button_frame, text="Close", command=dialog.destroy).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Close", command=dialog.destroy, style='Toolbar.TButton').pack(side=tk.LEFT, padx=8)
     
     def _start_flashcard_mode(self):
         """Start flashcard mode."""

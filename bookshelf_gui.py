@@ -618,6 +618,19 @@ def main():
     """Main entry point for the GUI application."""
     import argparse
     
+    # Check if tkinter is available
+    try:
+        import tkinter as tk
+    except ImportError:
+        print("Error: tkinter is not installed.")
+        print("\nThe GUI requires tkinter to run. Please install it:")
+        print("  - Ubuntu/Debian: sudo apt-get install python3-tk")
+        print("  - Fedora: sudo dnf install python3-tkinter")
+        print("  - macOS/Windows: Usually included with Python")
+        print("\nAlternatively, use the CLI version:")
+        print("  python3 bookshelf.py --help")
+        sys.exit(1)
+    
     parser = argparse.ArgumentParser(description="Bookshelf Flashcards - GUI Application")
     parser.add_argument('--db', default='bookshelf.db', help='Database file path (default: bookshelf.db)')
     

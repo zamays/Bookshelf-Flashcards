@@ -10,7 +10,7 @@ import sys
 def main():
     """Main entry point for the application."""
     # Check if --mode is specified
-    mode = 'gui'  # Default to GUI
+    mode = None
     
     # Look for --mode in arguments
     if '--mode' in sys.argv:
@@ -28,12 +28,20 @@ def main():
                 sys.exit(1)
             # Remove --mode and its value from sys.argv
             sys.argv.pop(mode_idx)  # Remove --mode
-            sys.argv.pop(mode_idx)  # Remove the mode value
+            sys.argv.pop(mode_idx)  # Remove the mode value (which is now at mode_idx)
     
-    # Check for help or no arguments (when no CLI command provided)
-    # If no arguments after removing --mode, default to GUI
-    if len(sys.argv) == 1:
-        mode = 'gui'
+    # If mode not specified, default based on remaining arguments
+    # If no arguments after program name, default to GUI
+    # If there are CLI commands, default to CLI
+    if mode is None:
+        if len(sys.argv) == 1:
+            mode = 'gui'
+        else:
+            # Check if first remaining arg looks like a CLI command
+            if sys.argv[1] in ['add', 'add-file', 'list', 'flashcard']:
+                mode = 'cli'
+            else:
+                mode = 'gui'
     
     if mode == 'gui':
         # Import and run GUI

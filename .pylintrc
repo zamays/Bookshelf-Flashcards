@@ -1,0 +1,28 @@
+[MASTER]
+# Use multiple processes to speed up Pylint.
+jobs=1
+
+[MESSAGES CONTROL]
+# Disable specific warnings that are acceptable for this project
+disable=
+    import-error,           # External libraries may not be installed during linting
+    wrong-import-position,  # Python 3.9 compatibility requires non-standard imports
+    too-few-public-methods, # Some classes intentionally have few public methods
+    too-many-instance-attributes, # GUI classes naturally have many attributes
+    too-many-locals,        # Some complex methods legitimately need many locals
+    attribute-defined-outside-init, # Attributes defined in setup methods called from __init__
+    broad-exception-caught  # Broad exception handling is intentional for user-facing errors
+
+[FORMAT]
+# Maximum number of characters on a single line.
+max-line-length=100
+
+[DESIGN]
+# Maximum number of attributes for a class
+max-attributes=25
+
+# Maximum number of local variables for function / method body
+max-locals=20
+
+# Minimum number of public methods for a class
+min-public-methods=1

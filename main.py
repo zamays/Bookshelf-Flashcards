@@ -14,7 +14,6 @@ def main():
     """Main entry point for the application."""
     # Check if --mode is specified
     mode = None
-    
     # Look for --mode in arguments
     if '--mode' in sys.argv:
         mode_idx = sys.argv.index('--mode')
@@ -40,7 +39,6 @@ def main():
             print("  python3 main.py --mode cli list        # Launch CLI and list books")
             print("  python3 main.py --mode cli add-file books.txt  # Launch CLI and add books")
             sys.exit(1)
-    
     # If mode not specified, default based on remaining arguments
     # If no arguments after program name, default to GUI
     # If there are CLI commands, default to CLI
@@ -53,17 +51,18 @@ def main():
                 mode = 'cli'
             else:
                 mode = 'gui'
-    
     if mode == 'gui':
         # Import and run GUI
         # Update sys.argv[0] to match the expected module name
         sys.argv[0] = 'bookshelf_gui.py'
+        # pylint: disable=import-outside-toplevel
         from bookshelf_gui import main as gui_main
         gui_main()
     else:  # mode == 'cli'
         # Import and run CLI
         # Update sys.argv[0] to match the expected module name
         sys.argv[0] = 'bookshelf.py'
+        # pylint: disable=import-outside-toplevel
         from bookshelf import main as cli_main
         cli_main()
 

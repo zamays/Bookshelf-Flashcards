@@ -27,8 +27,18 @@ def main():
                 print("  python3 main.py --mode cli add-file books.txt  # Launch CLI and add books")
                 sys.exit(1)
             # Remove --mode and its value from sys.argv
+            # After first pop, the mode value moves to mode_idx position
             sys.argv.pop(mode_idx)  # Remove --mode
             sys.argv.pop(mode_idx)  # Remove the mode value (which is now at mode_idx)
+        else:
+            # --mode provided but no value
+            print("Error: --mode requires a value ('gui' or 'cli').", file=sys.stderr)
+            print("\nUsage examples:")
+            print("  python3 main.py                        # Launch GUI (default)")
+            print("  python3 main.py --mode gui             # Launch GUI")
+            print("  python3 main.py --mode cli list        # Launch CLI and list books")
+            print("  python3 main.py --mode cli add-file books.txt  # Launch CLI and add books")
+            sys.exit(1)
     
     # If mode not specified, default based on remaining arguments
     # If no arguments after program name, default to GUI

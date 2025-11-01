@@ -18,6 +18,8 @@ cd Bookshelf-Flashcards
 ./setup.sh
 
 # 3. Launch the GUI
+python3 main.py
+# OR
 make gui
 # OR manually:
 # python3 bookshelf_gui.py
@@ -33,8 +35,11 @@ cd Bookshelf-Flashcards
 # 2. Run the automated setup
 ./setup.sh
 
-# 3. Try it out with example books (using make)
-make run-example
+# 3. Try it out with example books
+python3 main.py --mode cli add-file example_books.txt
+python3 main.py --mode cli list
+# OR using make:
+# make run-example
 # OR manually:
 # python3 bookshelf.py add-file example_books.txt
 # python3 bookshelf.py list
@@ -49,6 +54,7 @@ make run-example
 For convenience, use `make` commands:
 - `make help` - Show all available commands
 - `make setup` - Run the setup script
+- `make run` - Launch the application (GUI by default, using main.py)
 - `make gui` - Launch the GUI application
 - `make run-example` - Add example books and display them (CLI)
 - `make list` - List all books (CLI)
@@ -101,6 +107,22 @@ cp .env.example .env
 
 ## Usage
 
+### Unified Entry Point (main.py)
+
+The easiest way to start the application is through `main.py`:
+
+```bash
+# Launch GUI (default)
+python3 main.py
+
+# Launch CLI
+python3 main.py --mode cli list
+python3 main.py --mode cli add-file books.txt
+python3 main.py --mode cli flashcard
+```
+
+You can also use the individual entry points directly:
+
 ### GUI Application
 
 Launch the GUI with:
@@ -109,6 +131,8 @@ Launch the GUI with:
 python3 bookshelf_gui.py
 # OR
 make gui
+# OR
+python3 main.py --mode gui
 ```
 
 **GUI Features:**
@@ -135,6 +159,8 @@ Create a text file with book titles (see `example_books.txt` for format):
 
 ```bash
 python3 bookshelf.py add-file books.txt
+# OR
+python3 main.py --mode cli add-file books.txt
 ```
 
 **File format options:**
@@ -146,12 +172,16 @@ python3 bookshelf.py add-file books.txt
 
 ```bash
 python3 bookshelf.py add
+# OR
+python3 main.py --mode cli add
 ```
 
 #### List All Books
 
 ```bash
 python3 bookshelf.py list
+# OR
+python3 main.py --mode cli list
 ```
 
 #### Flashcard Mode
@@ -160,6 +190,8 @@ Review your books in an interactive flashcard session:
 
 ```bash
 python3 bookshelf.py flashcard
+# OR
+python3 main.py --mode cli flashcard
 ```
 
 This mode will display each book's title and author, then reveal the summary when you press Enter. Perfect for refreshing your memory!
@@ -178,10 +210,23 @@ Both versions share the same database, so you can use them interchangeably!
 
 ## Example
 
+**Using main.py (Recommended):**
+```bash
+# Launch the GUI (default)
+python3 main.py
+
+# Or use CLI mode
+python3 main.py --mode cli add-file example_books.txt
+python3 main.py --mode cli list
+python3 main.py --mode cli flashcard
+```
+
 **GUI Example:**
 ```bash
 # Launch the GUI
 python3 bookshelf_gui.py
+# OR
+python3 main.py --mode gui
 
 # Then use the GUI to:
 # 1. Click "Add from File" and select example_books.txt
@@ -229,6 +274,7 @@ GOOGLE_AI_API_KEY=your_api_key_here
 
 ## Project Structure
 
+- `main.py` - Unified entry point for both GUI and CLI
 - `bookshelf_gui.py` - GUI application (tkinter)
 - `bookshelf.py` - CLI application (lite version)
 - `database.py` - Database operations (SQLite)

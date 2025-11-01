@@ -2,6 +2,7 @@
 GUI application for Bookshelf Flashcards.
 """
 
+import sys
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog, scrolledtext, simpledialog
 

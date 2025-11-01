@@ -1,4 +1,4 @@
-.PHONY: help setup install run-example list clean gui
+.PHONY: help setup install run run-example list clean gui
 
 help: ## Show this help message
 	@echo "Bookshelf-Flashcards - Make targets:"
@@ -10,6 +10,9 @@ setup: ## Run the setup script (installs dependencies and creates .env)
 
 install: ## Install dependencies only
 	pip3 install -r requirements.txt
+
+run: ## Launch the application (GUI by default)
+	python3 main.py
 
 run-example: ## Add example books and list them
 	python3 bookshelf.py --quiet add-file example_books.txt

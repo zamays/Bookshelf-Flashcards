@@ -55,10 +55,14 @@ def main():
     
     if mode == 'gui':
         # Import and run GUI
+        # Update sys.argv[0] to match the expected module name
+        sys.argv[0] = 'bookshelf_gui.py'
         from bookshelf_gui import main as gui_main
         gui_main()
     else:  # mode == 'cli'
         # Import and run CLI
+        # Update sys.argv[0] to match the expected module name
+        sys.argv[0] = 'bookshelf.py'
         from bookshelf import main as cli_main
         cli_main()
 

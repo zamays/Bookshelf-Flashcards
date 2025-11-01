@@ -2,7 +2,19 @@
 AI service module for generating book summaries using Google AI Studio API.
 """
 import os
+import sys
 from typing import Optional
+
+# Fix for Python 3.9: Add packages_distributions from importlib_metadata to importlib.metadata
+if sys.version_info < (3, 10):
+    import importlib.metadata
+    try:
+        import importlib_metadata
+        if not hasattr(importlib.metadata, 'packages_distributions'):
+            importlib.metadata.packages_distributions = importlib_metadata.packages_distributions
+    except ImportError:
+        pass  # importlib_metadata not available, will fail later if needed
+
 import google.generativeai as genai
 from dotenv import load_dotenv
 

@@ -23,7 +23,7 @@ This will:
 1. Check your Python installation
 2. Install all required dependencies
 3. Create a `.env` configuration file
-4. Optionally save your OpenAI API key
+4. Optionally save your Google AI Studio API key
 
 ## Manual Setup (Alternative)
 
@@ -36,7 +36,7 @@ pip3 install -r requirements.txt
 # 2. Create configuration file
 cp .env.example .env
 
-# 3. (Optional) Edit .env and add your OpenAI API key
+# 3. (Optional) Edit .env and add your Google AI Studio API key
 nano .env  # or use your favorite editor
 ```
 
@@ -59,7 +59,7 @@ python3 bookshelf.py list
 python3 bookshelf.py flashcard
 ```
 
-## About the OpenAI API Key
+## About the Google AI Studio API Key
 
 **Good news:** The app works without an API key! 
 
@@ -67,7 +67,7 @@ python3 bookshelf.py flashcard
 - **Without API key:** You can still add and organize books (just no summaries)
 
 To get an API key:
-1. Visit https://platform.openai.com/api-keys
+1. Visit https://makersuite.google.com/app/apikey
 2. Create an account and generate a key
 3. Add it to your `.env` file
 
@@ -98,10 +98,10 @@ python3 bookshelf.py flashcard
 
 ## Troubleshooting
 
-**"ModuleNotFoundError: No module named 'openai'"**
+**"ModuleNotFoundError: No module named 'google'"**
 - Run: `pip3 install -r requirements.txt`
 
-**"Warning: OpenAI API key not found"**
+**"Warning: Google AI Studio API key not found"**
 - This is just a warning - the app will still work!
 - To remove it, add your API key to the `.env` file
 

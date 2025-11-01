@@ -46,20 +46,20 @@ if [ ! -f .env ]; then
     cp .env.example .env
     echo "✓ Created .env file from .env.example"
     echo ""
-    echo "⚠️  IMPORTANT: Edit .env and add your OpenAI API key"
+    echo "⚠️  IMPORTANT: Edit .env and add your Google AI Studio API key"
     echo "   The application can run without it, but won't generate summaries."
     echo ""
     
     # Check if running in interactive mode
     if [ -t 0 ]; then
-        read -p "Do you have an OpenAI API key to add now? (y/n) " -n 1 -r
+        read -p "Do you have a Google AI Studio API key to add now? (y/n) " -n 1 -r
         echo ""
         if [[ $REPLY =~ ^[Yy]$ ]]; then
-            read -p "Enter your OpenAI API key: " api_key
+            read -p "Enter your Google AI Studio API key: " api_key
             if [ -n "$api_key" ]; then
                 # Write the API key to the newly created .env file
                 # This is safe because we just created it from .env.example above
-                printf "# OpenAI API Key for generating book summaries\nOPENAI_API_KEY=%s\n" "$api_key" > .env
+                printf "# Google AI Studio API Key for generating book summaries\nGOOGLE_AI_API_KEY=%s\n" "$api_key" > .env
                 echo "✓ API key saved to .env"
             fi
         else

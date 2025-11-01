@@ -1,12 +1,23 @@
 """
 GUI application for Bookshelf Flashcards.
 """
+import sys
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog, scrolledtext, simpledialog
 
 from database import BookDatabase
 from ai_service import SummaryGenerator
 from book_parser import parse_book_file
+
+
+def get_default_font():
+    """Get platform-appropriate default font."""
+    if sys.platform == 'darwin':
+        return 'Helvetica Neue'
+    elif sys.platform == 'win32':
+        return 'Segoe UI'
+    else:
+        return 'Liberation Sans'
 
 
 class BookshelfGUI:
@@ -17,6 +28,9 @@ class BookshelfGUI:
         self.root = root
         self.root.title("Bookshelf Flashcards")
         self.root.geometry("800x600")
+        
+        # Get platform-appropriate font
+        self.font_family = get_default_font()
         
         # Configure style for minimalist look
         style = ttk.Style()
@@ -114,7 +128,7 @@ class BookshelfGUI:
         self.book_listbox = tk.Listbox(
             list_container, 
             yscrollcommand=scrollbar.set, 
-            font=('Segoe UI', 10),
+            font=(self.font_family, 10),
             borderwidth=1,
             relief='solid',
             selectbackground='#0078D4',
@@ -128,7 +142,7 @@ class BookshelfGUI:
         # Book count label with better styling
         footer = ttk.Frame(self.list_frame)
         footer.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=8)
-        self.book_count_label = ttk.Label(footer, text="Total books: 0", font=('Segoe UI', 9))
+        self.book_count_label = ttk.Label(footer, text="Total books: 0", font=(self.font_family, 9))
         self.book_count_label.pack(side=tk.LEFT)
     
     def _create_flashcard_tab(self):
@@ -137,7 +151,7 @@ class BookshelfGUI:
         instructions = ttk.Label(
             self.flashcard_frame,
             text="Review your books in flashcard mode",
-            font=('Segoe UI', 11)
+            font=(self.font_family, 11)
         )
         instructions.pack(pady=15)
         
@@ -149,7 +163,7 @@ class BookshelfGUI:
         self.card_title_label = ttk.Label(
             self.card_frame, 
             text="", 
-            font=('Segoe UI', 18, 'bold'), 
+            font=(self.font_family, 18, 'bold'), 
             wraplength=650
         )
         self.card_title_label.pack(pady=8)
@@ -157,7 +171,7 @@ class BookshelfGUI:
         self.card_author_label = ttk.Label(
             self.card_frame, 
             text="", 
-            font=('Segoe UI', 11), 
+            font=(self.font_family, 11), 
             wraplength=650,
             foreground='#666666'
         )
@@ -167,7 +181,7 @@ class BookshelfGUI:
             self.card_frame,
             wrap=tk.WORD,
             height=10,
-            font=('Segoe UI', 10),
+            font=(self.font_family, 10),
             state='disabled',
             borderwidth=1,
             relief='solid'
@@ -217,7 +231,7 @@ class BookshelfGUI:
         self.progress_label = ttk.Label(
             self.flashcard_frame, 
             text="",
-            font=('Segoe UI', 9),
+            font=(self.font_family, 9),
             foreground='#666666'
         )
         self.progress_label.pack(side=tk.BOTTOM, pady=8)
@@ -235,21 +249,21 @@ class BookshelfGUI:
         main_frame.pack(fill='both', expand=True)
         
         # Title
-        ttk.Label(main_frame, text="Book Title:", font=('Segoe UI', 10)).grid(row=0, column=0, padx=5, pady=10, sticky='w')
-        title_entry = ttk.Entry(main_frame, width=35, font=('Segoe UI', 10))
+        ttk.Label(main_frame, text="Book Title:", font=(self.font_family, 10)).grid(row=0, column=0, padx=5, pady=10, sticky='w')
+        title_entry = ttk.Entry(main_frame, width=35, font=(self.font_family, 10))
         title_entry.grid(row=0, column=1, padx=5, pady=10, sticky='ew')
         title_entry.focus()
         
         # Author
-        ttk.Label(main_frame, text="Author:", font=('Segoe UI', 10)).grid(row=1, column=0, padx=5, pady=10, sticky='w')
-        author_entry = ttk.Entry(main_frame, width=35, font=('Segoe UI', 10))
+        ttk.Label(main_frame, text="Author:", font=(self.font_family, 10)).grid(row=1, column=0, padx=5, pady=10, sticky='w')
+        author_entry = ttk.Entry(main_frame, width=35, font=(self.font_family, 10))
         author_entry.grid(row=1, column=1, padx=5, pady=10, sticky='ew')
         
         # Configure grid weights
         main_frame.columnconfigure(1, weight=1)
         
         # Status label
-        status_label = ttk.Label(main_frame, text="", foreground="#0078D4", font=('Segoe UI', 9))
+        status_label = ttk.Label(main_frame, text="", foreground="#0078D4", font=(self.font_family, 9))
         status_label.grid(row=2, column=0, columnspan=2, pady=5)
         
         def add_book():
@@ -426,14 +440,14 @@ class BookshelfGUI:
         info_frame = ttk.Frame(main_frame)
         info_frame.pack(fill='x', pady=(0, 15))
         
-        ttk.Label(info_frame, text="Title:", font=('Segoe UI', 10, 'bold')).grid(row=0, column=0, sticky='w', pady=3)
-        ttk.Label(info_frame, text=book['title'], font=('Segoe UI', 10)).grid(row=0, column=1, sticky='w', pady=3, padx=10)
+        ttk.Label(info_frame, text="Title:", font=(self.font_family, 10, 'bold')).grid(row=0, column=0, sticky='w', pady=3)
+        ttk.Label(info_frame, text=book['title'], font=(self.font_family, 10)).grid(row=0, column=1, sticky='w', pady=3, padx=10)
         
-        ttk.Label(info_frame, text="Author:", font=('Segoe UI', 10, 'bold')).grid(row=1, column=0, sticky='w', pady=3)
-        ttk.Label(info_frame, text=book['author'], font=('Segoe UI', 10)).grid(row=1, column=1, sticky='w', pady=3, padx=10)
+        ttk.Label(info_frame, text="Author:", font=(self.font_family, 10, 'bold')).grid(row=1, column=0, sticky='w', pady=3)
+        ttk.Label(info_frame, text=book['author'], font=(self.font_family, 10)).grid(row=1, column=1, sticky='w', pady=3, padx=10)
         
-        ttk.Label(info_frame, text="Added:", font=('Segoe UI', 10, 'bold')).grid(row=2, column=0, sticky='w', pady=3)
-        ttk.Label(info_frame, text=book['created_at'], font=('Segoe UI', 9), foreground='#666666').grid(row=2, column=1, sticky='w', pady=3, padx=10)
+        ttk.Label(info_frame, text="Added:", font=(self.font_family, 10, 'bold')).grid(row=2, column=0, sticky='w', pady=3)
+        ttk.Label(info_frame, text=book['created_at'], font=(self.font_family, 9), foreground='#666666').grid(row=2, column=1, sticky='w', pady=3, padx=10)
         
         # Summary with cleaner frame
         summary_frame = ttk.LabelFrame(main_frame, text="Summary", padding=15)
@@ -443,7 +457,7 @@ class BookshelfGUI:
             summary_frame, 
             wrap=tk.WORD, 
             height=12, 
-            font=('Segoe UI', 10),
+            font=(self.font_family, 10),
             borderwidth=1,
             relief='solid'
         )

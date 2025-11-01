@@ -10,6 +10,16 @@ from ai_service import SummaryGenerator
 from book_parser import parse_book_file
 
 
+def get_default_font():
+    """Get platform-appropriate default font."""
+    if sys.platform == 'darwin':
+        return 'Helvetica Neue'
+    elif sys.platform == 'win32':
+        return 'Segoe UI'
+    else:
+        return 'Liberation Sans'
+
+
 class BookshelfGUI:
     """GUI application for managing bookshelf flashcards."""
 
@@ -93,7 +103,7 @@ class BookshelfGUI:
 
     def _create_book_list_tab(self):
         """Create the book list tab."""
-        # Toolbar
+        # Toolbar with cleaner spacing
         toolbar = ttk.Frame(self.list_frame)
         toolbar.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
 
@@ -131,7 +141,7 @@ class BookshelfGUI:
 
     def _create_flashcard_tab(self):
         """Create the flashcard tab."""
-        # Instructions
+        # Instructions with better styling
         instructions = ttk.Label(
             self.flashcard_frame,
             text="Review your books in flashcard mode. Click 'Start' to begin.",
@@ -200,7 +210,7 @@ class BookshelfGUI:
         """Show dialog to add a new book."""
         dialog = tk.Toplevel(self.root)
         dialog.title("Add New Book")
-        dialog.geometry("500x250")
+        dialog.geometry("450x220")
         dialog.transient(self.root)
         dialog.grab_set()
 
@@ -220,7 +230,7 @@ class BookshelfGUI:
         author_entry.grid(row=1, column=1, padx=10, pady=10)
 
         # Status label
-        status_label = ttk.Label(dialog, text="", foreground="blue")
+        status_label = ttk.Label(main_frame, text="", foreground="#0078D4", font=(self.font_family, 9))
         status_label.grid(row=2, column=0, columnspan=2, pady=5)
 
         def add_book():
@@ -406,7 +416,7 @@ class BookshelfGUI:
         # Create details dialog
         dialog = tk.Toplevel(self.root)
         dialog.title("Book Details")
-        dialog.geometry("600x500")
+        dialog.geometry("550x450")
         dialog.transient(self.root)
 
         # Book info

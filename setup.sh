@@ -30,6 +30,22 @@ fi
 echo "✓ Found pip3"
 echo ""
 
+# Check for tkinter (for GUI)
+echo "Checking for tkinter (GUI support)..."
+if python3 -c "import tkinter" 2>/dev/null; then
+    echo "✓ tkinter is installed (GUI available)"
+    GUI_AVAILABLE=true
+else
+    echo "⚠️  tkinter is not installed (GUI will not work)"
+    echo "   To use the GUI, install tkinter:"
+    echo "   - Ubuntu/Debian: sudo apt-get install python3-tk"
+    echo "   - Fedora: sudo dnf install python3-tkinter"
+    echo "   - macOS/Windows: Usually included with Python"
+    echo "   The CLI will work without tkinter."
+    GUI_AVAILABLE=false
+fi
+echo ""
+
 # Install dependencies
 echo "Installing dependencies..."
 if pip3 install -r requirements.txt; then
@@ -87,7 +103,7 @@ echo "=========================================="
 echo "Setup Complete!"
 echo "=========================================="
 echo ""
-echo "Quick Start:"
+echo "Quick Start (CLI):"
 echo "  1. Add books from the example file:"
 echo "     python3 bookshelf.py add-file example_books.txt"
 echo ""
@@ -97,5 +113,13 @@ echo ""
 echo "  3. Start flashcard mode:"
 echo "     python3 bookshelf.py flashcard"
 echo ""
+if [ "$GUI_AVAILABLE" = true ]; then
+    echo "Quick Start (GUI):"
+    echo "  Launch the GUI application:"
+    echo "     python3 bookshelf_gui.py"
+    echo "  or:"
+    echo "     make gui"
+    echo ""
+fi
 echo "For more information, see README.md"
 echo ""

@@ -1,4 +1,4 @@
-.PHONY: help setup install run-example list clean
+.PHONY: help setup install run-example list clean gui
 
 help: ## Show this help message
 	@echo "Bookshelf-Flashcards - Make targets:"
@@ -17,6 +17,9 @@ run-example: ## Add example books and list them
 
 list: ## List all books in the bookshelf
 	python3 bookshelf.py --quiet list
+
+gui: ## Launch the GUI application
+	python3 bookshelf_gui.py
 
 clean: ## Remove database and cache files
 	rm -f bookshelf.db

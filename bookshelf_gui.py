@@ -77,6 +77,8 @@ class BookshelfGUI:
         # Help menu
         help_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Help", menu=help_menu)
+        help_menu.add_command(label="Start Tutorial", command=self._start_tutorial)
+        help_menu.add_separator()
         help_menu.add_command(label="About", command=self._show_about)
 
     def _create_main_interface(self):
@@ -117,6 +119,15 @@ class BookshelfGUI:
             side=tk.LEFT, padx=2
         )
         ttk.Button(toolbar, text="View Details", command=self._view_book_details).pack(
+            side=tk.LEFT, padx=2
+        )
+
+        # Add tutorial buttons with separator
+        ttk.Separator(toolbar, orient=tk.VERTICAL).pack(side=tk.LEFT, padx=5, fill=tk.Y)
+        ttk.Button(toolbar, text="Start Tutorial", command=self._start_tutorial).pack(
+            side=tk.LEFT, padx=2
+        )
+        ttk.Button(toolbar, text="Clear Example Books", command=self._clear_example_books).pack(
             side=tk.LEFT, padx=2
         )
 
@@ -605,12 +616,159 @@ class BookshelfGUI:
             self.current_flashcard_index -= 1
             self._display_current_flashcard()
 
+    def _start_tutorial(self):
+        """Start the interactive tutorial with example books."""
+        # Check if example_books.txt exists
+        import os
+        example_file = os.path.join(os.path.dirname(__file__), "example_books.txt")
+
+        if not os.path.exists(example_file):
+            messagebox.showerror(
+                "Tutorial Error",
+                "Could not find example_books.txt file.\n\n"
+                "The tutorial requires this file to demonstrate the application features."
+            )
+            return
+
+        # Show welcome dialog
+        welcome_msg = (
+            "Welcome to Bookshelf Flashcards Tutorial!\n\n"
+            "This tutorial will help you learn how to use the application by:\n\n"
+            "1. Loading example books from example_books.txt\n"
+            "2. Showing you how to view and manage books\n"
+            "3. Demonstrating the flashcard mode\n"
+            "4. Allowing you to add your own books\n\n"
+            "The example books will be added to your bookshelf.\n"
+            "When you're done experimenting, you can click\n"
+            "'Clear Example Books' to remove them.\n\n"
+            "Would you like to start the tutorial?"
+        )
+
+        if not messagebox.askyesno("Start Tutorial", welcome_msg):
+            return
+
+        # Load example books
+        try:
+            books = parse_book_file(example_file)
+
+            if not books:
+                messagebox.showerror(
+                    "Tutorial Error",
+                    "No books found in example_books.txt."
+                )
+                return
+
+            # Add example books to database
+            added_count = 0
+            for title, author in books:
+                if not author:
+                    continue  # Skip books without authors in tutorial
+
+                # Check for duplicates
+                existing = self.db.search_books_by_title(title)
+                if any(book["author"] == author for book in existing):
+                    continue
+
+                self.db.add_book(title, author)
+                added_count += 1
+
+            self._refresh_book_list()
+
+            # Show tutorial instructions
+            tutorial_msg = (
+                f"Tutorial Started! Added {added_count} example books.\n\n"
+                "Here's what you can do now:\n\n"
+                "📚 Book List Tab (current):\n"
+                "  • View all books in the list below\n"
+                "  • Double-click a book to view details\n"
+                "  • Click 'Add Book' to add your own books\n"
+                "  • Click 'View Details' to see summaries\n\n"
+                "🎴 Flashcard Mode Tab:\n"
+                "  • Switch to this tab to review books\n"
+                "  • Click 'Start Flashcards' to begin\n"
+                "  • Use Previous/Next to navigate\n"
+                "  • Click 'Reveal Summary' to see the summary\n\n"
+                "🧹 When you're done:\n"
+                "  • Click 'Clear Example Books' to remove them\n\n"
+                "Try it out and explore the features!"
+            )
+
+            messagebox.showinfo("Tutorial Instructions", tutorial_msg)
+
+        except Exception as e:
+            messagebox.showerror(
+                "Tutorial Error",
+                f"Error loading example books: {str(e)}"
+            )
+
+    def _clear_example_books(self):
+        """Clear example books from the database."""
+        import os
+        example_file = os.path.join(os.path.dirname(__file__), "example_books.txt")
+
+        if not os.path.exists(example_file):
+            messagebox.showwarning(
+                "Clear Example Books",
+                "Could not find example_books.txt to identify example books."
+            )
+            return
+
+        try:
+            # Parse example books file to know which books to remove
+            books = parse_book_file(example_file)
+
+            if not books:
+                messagebox.showinfo(
+                    "Clear Example Books",
+                    "No example books found to clear."
+                )
+                return
+
+            # Ask for confirmation
+            confirm_msg = (
+                "This will remove books from example_books.txt that are\n"
+                "currently in your bookshelf.\n\n"
+                "Are you sure you want to clear these example books?"
+            )
+
+            if not messagebox.askyesno("Confirm Clear", confirm_msg):
+                return
+
+            # Remove example books from database
+            removed_count = 0
+            for title, author in books:
+                if not author:
+                    continue
+
+                # Find and remove the book
+                existing = self.db.search_books_by_title(title)
+                for book in existing:
+                    if book["author"] == author:
+                        cursor = self.db.conn.cursor()
+                        cursor.execute("DELETE FROM books WHERE id = ?", (book["id"],))
+                        self.db.conn.commit()
+                        removed_count += 1
+
+            self._refresh_book_list()
+
+            messagebox.showinfo(
+                "Example Books Cleared",
+                f"Removed {removed_count} example book(s) from your bookshelf.\n\n"
+                "You can now start adding your own books!"
+            )
+
+        except Exception as e:
+            messagebox.showerror(
+                "Error",
+                f"Error clearing example books: {str(e)}"
+            )
+
     def _show_about(self):
         """Show about dialog."""
         about_text = """Bookshelf Flashcards
 Version 1.0
 
-A helpful tool to refresh one's memory of the books 
+A helpful tool to refresh one's memory of the books
 that they have read on their bookshelf.
 
 © 2024 Bookshelf Flashcards"""

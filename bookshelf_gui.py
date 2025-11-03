@@ -2,6 +2,7 @@
 GUI application for Bookshelf Flashcards.
 """
 
+import os
 import sys
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog, scrolledtext, simpledialog
@@ -619,7 +620,6 @@ class BookshelfGUI:
     def _start_tutorial(self):
         """Start the interactive tutorial with example books."""
         # Check if example_books.txt exists
-        import os
         example_file = os.path.join(os.path.dirname(__file__), "example_books.txt")
 
         if not os.path.exists(example_file):
@@ -703,7 +703,6 @@ class BookshelfGUI:
 
     def _clear_example_books(self):
         """Clear example books from the database."""
-        import os
         example_file = os.path.join(os.path.dirname(__file__), "example_books.txt")
 
         if not os.path.exists(example_file):

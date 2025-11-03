@@ -37,7 +37,7 @@ class SummaryGenerator:
                 "a .env file with your API key."
             )
         genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel('gemini-pro')
+        self.model = genai.GenerativeModel('models/gemini-2.5-flash')
     def generate_summary(self, title: str, author: str) -> str:
         """
         Generate a summary for a book.

@@ -15,10 +15,9 @@ def get_default_font():
     """Get platform-appropriate default font."""
     if sys.platform == 'darwin':
         return 'Helvetica Neue'
-    elif sys.platform == 'win32':
+    if sys.platform == 'win32':
         return 'Segoe UI'
-    else:
-        return 'Liberation Sans'
+    return 'Liberation Sans'
 
 
 class BookshelfGUI:
@@ -231,7 +230,9 @@ class BookshelfGUI:
         author_entry.grid(row=1, column=1, padx=10, pady=10)
 
         # Status label
-        status_label = ttk.Label(main_frame, text="", foreground="#0078D4", font=(self.font_family, 9))
+        status_label = ttk.Label(
+            dialog, text="", foreground="#0078D4", font=(get_default_font(), 9)
+        )
         status_label.grid(row=2, column=0, columnspan=2, pady=5)
 
         def add_book():
@@ -627,6 +628,7 @@ that they have read on their bookshelf.
 
 def main():
     """Main entry point for the GUI application."""
+    # pylint: disable=import-outside-toplevel
     import argparse
 
     parser = argparse.ArgumentParser(

@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
+"""
+Debug script to test importing bookshelf_gui module.
+"""
 import sys
 import traceback
 
 try:
     print("Attempting to import bookshelf_gui...")
-    from bookshelf_gui import main
+    import bookshelf_gui  # noqa: F401, pylint: disable=unused-import
     print("Success!")
 except Exception as e:
     print(f"\nError type: {type(e).__name__}")

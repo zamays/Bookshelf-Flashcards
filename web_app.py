@@ -11,7 +11,9 @@ from ai_service import SummaryGenerator
 from book_parser import parse_book_file
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
+# Use SECRET_KEY from environment or a static fallback for development
+# In production, always set SECRET_KEY environment variable
+app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
 # Configuration
 UPLOAD_FOLDER = '/tmp/uploads'
@@ -149,7 +151,7 @@ def view_book(book_id):
         flash('Book not found.', 'error')
         return redirect(url_for('index'))
     
-    return render_template('book_detail.html', book=book)
+    return render_template('book_detail.html', book=book, ai_available=ai_service is not None)
 
 
 @app.route('/flashcards')

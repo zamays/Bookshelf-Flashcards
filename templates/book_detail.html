@@ -18,7 +18,7 @@
                 <p style="line-height: 1.8; color: #333; white-space: pre-wrap;">{{ book.summary }}</p>
             {% else %}
                 <p style="color: #6c757d; font-style: italic;">No summary available for this book.</p>
-                {% if ai_service %}
+                {% if ai_available %}
                     <p style="margin-top: 15px;">
                         <em>AI summary generation is available but no summary was created for this book yet.</em>
                     </p>

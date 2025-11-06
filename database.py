@@ -11,7 +11,8 @@ class BookDatabase:
     def __init__(self, db_path: str = "bookshelf.db"):
         """Initialize database connection and create tables if needed."""
         self.db_path = db_path
-        self.conn = sqlite3.connect(db_path)
+        # check_same_thread=False allows SQLite to be used in multi-threaded Flask app
+        self.conn = sqlite3.connect(db_path, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         self._create_tables()
     def _create_tables(self):

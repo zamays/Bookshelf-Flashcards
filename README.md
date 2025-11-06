@@ -1,7 +1,45 @@
 # Bookshelf-Flashcards
 A helpful tool to refresh one's memory of the books that they have read on their bookshelf. Too often do people read a book and never think about it again. By keeping the stories in recent memory, their messages become more useful.
 
-**Available in both GUI and CLI versions!** Choose the interface that works best for you.
+**Available in GUI, CLI, and Web versions!** Choose the interface that works best for you.
+
+## 🌐 Web Version (NEW!)
+
+**Host your bookshelf online and access it from anywhere!**
+
+The web version is perfect for:
+- Accessing your bookshelf from any device
+- Sharing with friends or colleagues
+- Cloud hosting on Render.com or similar platforms
+
+### Deploy to Render.com
+
+1. Fork this repository to your GitHub account
+2. Sign up for a free account at [Render.com](https://render.com)
+3. Click "New +" → "Web Service"
+4. Connect your GitHub repository
+5. Render will automatically detect the `render.yaml` configuration
+6. (Optional) Add your `GOOGLE_AI_API_KEY` environment variable for AI summaries
+7. Click "Create Web Service"
+
+Your bookshelf will be live at `https://your-service-name.onrender.com`
+
+### Run Web Version Locally
+
+```bash
+# 1. Install dependencies
+pip install -r requirements.txt
+
+# 2. Run the web server
+python3 web_app.py
+
+# 3. Open your browser to http://localhost:5000
+```
+
+Or use gunicorn for production-like environment:
+```bash
+gunicorn --bind 0.0.0.0:5000 web_app:app
+```
 
 ## 🚀 Quick Start
 
@@ -62,13 +100,15 @@ For convenience, use `make` commands:
 
 ## Features
 
-- 🖥️ **GUI & CLI Interfaces**: Choose between a full-featured GUI or lightweight CLI
+- 🌐 **Web Interface**: Modern, responsive web UI accessible from any device
+- 🖥️ **GUI & CLI Interfaces**: Choose between a full-featured GUI, web app, or lightweight CLI
 - 📚 **Import from File**: Add multiple books at once from a text file
 - 🤖 **AI-Powered Summaries**: Automatically generates book summaries using Google AI Studio
 - 🗃️ **SQLite Database**: Stores books and summaries locally
-- 💭 **Flashcard Mode**: Interactive interface to refresh your memory
+- 💭 **Flashcard Mode**: Interactive interface to refresh your memory (available in all versions)
 - ➕ **Easy Addition**: Add books interactively or from a file
 - 🔍 **Author Disambiguation**: Prompts for author when titles match
+- ☁️ **Cloud Ready**: Deploy to Render.com or any hosting platform
 
 ## Installation
 
@@ -203,10 +243,11 @@ python3 bookshelf.py --db /path/to/database.db list
 
 ## Which Version Should I Use?
 
-- **Use the GUI** if you prefer a visual interface with mouse-driven navigation, or if you want to see multiple books at once
+- **Use the Web Version** if you want to access your bookshelf from anywhere, share it with others, or prefer a modern web interface
+- **Use the GUI** if you prefer a desktop application with mouse-driven navigation, or if you want to see multiple books at once
 - **Use the CLI** if you prefer command-line tools, want to script operations, or need a lightweight option
 
-Both versions share the same database, so you can use them interchangeably!
+All versions share the same database format, so you can use them interchangeably!
 
 ## Example
 
@@ -275,13 +316,16 @@ GOOGLE_AI_API_KEY=your_api_key_here
 ## Project Structure
 
 - `main.py` - Unified entry point for both GUI and CLI
+- `web_app.py` - Flask web application for hosting online
 - `bookshelf_gui.py` - GUI application (tkinter)
 - `bookshelf.py` - CLI application (lite version)
 - `database.py` - Database operations (SQLite)
 - `ai_service.py` - Google AI Studio integration for summaries
 - `book_parser.py` - Parse book files
+- `templates/` - HTML templates for web version
 - `example_books.txt` - Example book list
 - `requirements.txt` - Python dependencies
+- `render.yaml` - Render.com deployment configuration
 
 ## Requirements
 

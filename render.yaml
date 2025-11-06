@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: bookshelf-flashcards
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT web_app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_PATH
+        value: /opt/render/project/src/bookshelf.db
+      - key: GOOGLE_AI_API_KEY
+        sync: false
+    autoDeploy: true

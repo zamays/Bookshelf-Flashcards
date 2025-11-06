@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Add Books from File - Bookshelf Flashcards{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <h2 style="margin-bottom: 30px; color: #667eea;">Add Books from File</h2>
+    
+    <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+        <h3 style="color: #667eea; margin-bottom: 15px;">File Format</h3>
+        <p style="margin-bottom: 10px;">Your file should contain one book per line in one of these formats:</p>
+        <ul style="margin-left: 20px; margin-bottom: 15px;">
+            <li><code>Title by Author</code></li>
+            <li><code>Title - Author</code></li>
+            <li><code>Title</code> (author will be requested)</li>
+        </ul>
+        <p style="margin: 0;"><strong>Example:</strong></p>
+        <pre style="background: white; padding: 15px; border-radius: 5px; margin-top: 10px; overflow-x: auto;">1984 by George Orwell
+To Kill a Mockingbird - Harper Lee
+The Great Gatsby by F. Scott Fitzgerald</pre>
+    </div>
+    
+    <form method="POST" action="{{ url_for('add_from_file') }}" enctype="multipart/form-data">
+        <div style="margin-bottom: 20px;">
+            <label for="file">Choose a text file (.txt) *</label>
+            <input type="file" id="file" name="file" accept=".txt" required>
+        </div>
+        
+        <div style="margin-bottom: 20px; padding: 15px; background: #fff3cd; border-radius: 5px; border-left: 4px solid #ffc107;">
+            <p style="margin: 0; color: #856404;">
+                ⚠️ <strong>Note:</strong> Books without authors in the file will be skipped. Make sure to include author names.
+            </p>
+        </div>
+        
+        <div style="display: flex; gap: 10px;">
+            <button type="submit">Upload and Add Books</button>
+            <a href="{{ url_for('index') }}" class="btn" style="background: #6c757d;">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

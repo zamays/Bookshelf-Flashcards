@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Add Book - Bookshelf Flashcards{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <h2 style="margin-bottom: 30px; color: #667eea;">Add a New Book</h2>
+    
+    <form method="POST" action="{{ url_for('add_book') }}">
+        <div style="margin-bottom: 20px;">
+            <label for="title">Book Title *</label>
+            <input type="text" id="title" name="title" required placeholder="Enter the book title">
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <label for="author">Author *</label>
+            <input type="text" id="author" name="author" required placeholder="Enter the author's name">
+        </div>
+        
+        <div style="margin-bottom: 20px; padding: 15px; background: #e7f3ff; border-radius: 5px; border-left: 4px solid #667eea;">
+            <p style="margin: 0; color: #004085;">
+                💡 <strong>Tip:</strong> If you have an AI API key configured, a summary will be automatically generated for this book.
+            </p>
+        </div>
+        
+        <div style="display: flex; gap: 10px;">
+            <button type="submit">Add Book</button>
+            <a href="{{ url_for('index') }}" class="btn" style="background: #6c757d;">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

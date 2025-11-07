@@ -89,13 +89,13 @@ def add_from_file():
     if request.method == 'POST':
         if 'file' not in request.files:
             flash('No file uploaded.', 'error')
-            return redirect(request.url)
+            return redirect(url_for('add_from_file'))
         
         file = request.files['file']
         
         if file.filename == '':
             flash('No file selected.', 'error')
-            return redirect(request.url)
+            return redirect(url_for('add_from_file'))
         
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
@@ -138,7 +138,7 @@ def add_from_file():
             return redirect(url_for('index'))
         else:
             flash('Invalid file type. Only .txt files are allowed.', 'error')
-            return redirect(request.url)
+            return redirect(url_for('add_from_file'))
     
     return render_template('add_from_file.html')
 

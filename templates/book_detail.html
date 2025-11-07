@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book.title }} - Bookshelf Flashcards{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <div style="margin-bottom: 20px;">
+        <a href="{{ url_for('index') }}" style="color: #667eea; text-decoration: none;">← Back to bookshelf</a>
+    </div>
+    
+    <div style="background: white; border: 1px solid #dee2e6; border-radius: 10px; padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <h2 style="color: #667eea; margin-bottom: 15px; font-size: 2em;">{{ book.title }}</h2>
+        <p style="color: #6c757d; font-size: 1.2em; font-style: italic; margin-bottom: 25px;">by {{ book.author }}</p>
+        
+        <div style="border-top: 2px solid #667eea; padding-top: 25px; margin-top: 25px;">
+            <h3 style="color: #667eea; margin-bottom: 15px;">Summary</h3>
+            {% if book.summary %}
+                <p style="line-height: 1.8; color: #333; white-space: pre-wrap;">{{ book.summary }}</p>
+            {% else %}
+                <p style="color: #6c757d; font-style: italic;">No summary available for this book.</p>
+                {% if ai_available %}
+                    <p style="margin-top: 15px;">
+                        <em>AI summary generation is available but no summary was created for this book yet.</em>
+                    </p>
+                {% else %}
+                    <p style="margin-top: 15px; padding: 15px; background: #fff3cd; border-radius: 5px; border-left: 4px solid #ffc107; color: #856404;">
+                        💡 <strong>Tip:</strong> Configure an AI API key to automatically generate summaries for your books.
+                    </p>
+                {% endif %}
+            {% endif %}
+        </div>
+        
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; color: #6c757d; font-size: 0.9em;">
+            <p>Added on: {{ book.created_at }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

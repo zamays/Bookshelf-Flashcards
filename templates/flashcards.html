@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Flashcards - Bookshelf Flashcards{% endblock %}
+
+{% block extra_css %}
+<style>
+    .flashcard-container {
+        max-width: 700px;
+        margin: 30px auto;
+        text-align: center;
+    }
+    
+    .flashcard {
+        background: white;
+        border: 2px solid #667eea;
+        border-radius: 15px;
+        padding: 50px 40px;
+        min-height: 400px;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        position: relative;
+        transition: transform 0.3s;
+    }
+    
+    .flashcard:hover {
+        transform: translateY(-5px);
+    }
+    
+    .flashcard-title {
+        font-size: 2em;
+        color: #667eea;
+        margin-bottom: 15px;
+        font-weight: bold;
+    }
+    
+    .flashcard-author {
+        font-size: 1.3em;
+        color: #6c757d;
+        font-style: italic;
+        margin-bottom: 30px;
+    }
+    
+    .flashcard-summary {
+        font-size: 1.1em;
+        line-height: 1.8;
+        color: #333;
+        text-align: left;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-top: 20px;
+        white-space: pre-wrap;
+    }
+    
+    .flashcard-controls {
+        margin-top: 30px;
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .flashcard-counter {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: #667eea;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: bold;
+    }
+    
+    .hidden {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flashcard-container">
+    <h2 style="margin-bottom: 30px; color: #667eea;">Flashcard Mode</h2>
+    
+    {% if not books %}
+        <div style="text-align: center; padding: 60px 20px; background: #f8f9fa; border-radius: 10px;">
+            <p style="font-size: 1.2em; color: #6c757d; margin-bottom: 20px;">
+                No books available for flashcard mode.
+            </p>
+            <a href="{{ url_for('add_book') }}" class="btn">Add Your First Book</a>
+        </div>
+    {% else %}
+        <div class="flashcard" id="flashcard">
+            <div class="flashcard-counter" id="counter">1 / {{ books|length }}</div>
+            
+            <div class="flashcard-title" id="title">{{ books[0].title }}</div>
+            <div class="flashcard-author" id="author">by {{ books[0].author }}</div>
+            
+            <div id="summary-container" class="hidden">
+                <div class="flashcard-summary" id="summary">
+                    {% if books[0].summary %}
+                        {{ books[0].summary }}
+                    {% else %}
+                        <em>No summary available for this book.</em>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="flashcard-controls">
+                <button onclick="previousCard()" id="prev-btn">← Previous</button>
+                <button onclick="toggleSummary()" id="toggle-btn">Reveal Summary</button>
+                <button onclick="nextCard()" id="next-btn">Next →</button>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const books = {{ books|tojson }};
+    let currentIndex = 0;
+    let summaryVisible = false;
+    
+    function updateCard() {
+        const book = books[currentIndex];
+        document.getElementById('title').textContent = book.title;
+        document.getElementById('author').textContent = 'by ' + book.author;
+        document.getElementById('summary').textContent = book.summary || 'No summary available for this book.';
+        document.getElementById('counter').textContent = (currentIndex + 1) + ' / ' + books.length;
+        
+        // Hide summary by default when changing cards
+        summaryVisible = false;
+        document.getElementById('summary-container').classList.add('hidden');
+        document.getElementById('toggle-btn').textContent = 'Reveal Summary';
+        
+        // Update button states
+        document.getElementById('prev-btn').disabled = currentIndex === 0;
+        document.getElementById('next-btn').disabled = currentIndex === books.length - 1;
+    }
+    
+    function toggleSummary() {
+        summaryVisible = !summaryVisible;
+        const summaryContainer = document.getElementById('summary-container');
+        const toggleBtn = document.getElementById('toggle-btn');
+        
+        if (summaryVisible) {
+            summaryContainer.classList.remove('hidden');
+            toggleBtn.textContent = 'Hide Summary';
+        } else {
+            summaryContainer.classList.add('hidden');
+            toggleBtn.textContent = 'Reveal Summary';
+        }
+    }
+    
+    function nextCard() {
+        if (currentIndex < books.length - 1) {
+            currentIndex++;
+            updateCard();
+        }
+    }
+    
+    function previousCard() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            updateCard();
+        }
+    }
+    
+    // Keyboard navigation
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'ArrowRight' || event.key === 'n') {
+            nextCard();
+        } else if (event.key === 'ArrowLeft' || event.key === 'p') {
+            previousCard();
+        } else if (event.key === ' ' || event.key === 'Enter') {
+            event.preventDefault();
+            toggleSummary();
+        }
+    });
+    
+    // Initialize
+    updateCard();
+</script>
+{% endblock %}

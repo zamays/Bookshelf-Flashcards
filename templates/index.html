@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="margin-bottom: 20px;">
+    <h2 style="margin-bottom: 20px; color: #667eea;">My Bookshelf</h2>
+    
+    {% if not books %}
+        <div style="text-align: center; padding: 60px 20px; background: #f8f9fa; border-radius: 10px;">
+            <p style="font-size: 1.2em; color: #6c757d; margin-bottom: 20px;">
+                📚 Your bookshelf is empty. Start adding books to keep track of what you've read!
+            </p>
+            <a href="{{ url_for('add_book') }}" class="btn">Add Your First Book</a>
+        </div>
+    {% else %}
+        <div style="margin-bottom: 20px; color: #6c757d;">
+            <strong>{{ books|length }}</strong> book{% if books|length != 1 %}s{% endif %} in your collection
+            {% if not ai_available %}
+                <span style="color: #856404; margin-left: 15px;">⚠️ AI summaries unavailable (no API key)</span>
+            {% endif %}
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+            {% for book in books %}
+                <div style="border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s;">
+                    <h3 style="color: #667eea; margin-bottom: 10px; font-size: 1.3em;">{{ book.title }}</h3>
+                    <p style="color: #6c757d; margin-bottom: 15px; font-style: italic;">by {{ book.author }}</p>
+                    
+                    {% if book.summary %}
+                        <p style="color: #555; margin-bottom: 15px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                            {{ book.summary }}
+                        </p>
+                    {% else %}
+                        <p style="color: #6c757d; margin-bottom: 15px; font-style: italic;">No summary available</p>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('view_book', book_id=book.id) }}" class="btn" style="font-size: 0.9em; padding: 8px 16px;">View Details</a>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .book-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15) !important;
+    }
+</style>
+{% endblock %}

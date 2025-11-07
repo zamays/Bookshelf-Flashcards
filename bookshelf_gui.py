@@ -2,18 +2,55 @@
 GUI application for Bookshelf Flashcards.
 """
 
+from __future__ import annotations
+
 import os
 import sys
-import tkinter as tk
-from tkinter import ttk, messagebox, filedialog, scrolledtext, simpledialog
 
 from database import BookDatabase
 from ai_service import SummaryGenerator
 from book_parser import parse_book_file
 
+# Lazy import tkinter - only imported when GUI is actually used
+# This allows the module to be imported in environments without tkinter
+# (e.g., web deployments) as long as the GUI is not instantiated
+tk = None
+ttk = None
+messagebox = None
+filedialog = None
+scrolledtext = None
+simpledialog = None
+
+
+def _ensure_tkinter():
+    """Ensure tkinter modules are imported. Called before GUI operations."""
+    # pylint: disable=global-statement,import-outside-toplevel
+    global tk, ttk, messagebox, filedialog, scrolledtext, simpledialog
+    if tk is None:
+        try:
+            import tkinter as tk_module
+            from tkinter import ttk as ttk_module
+            from tkinter import messagebox as messagebox_module
+            from tkinter import filedialog as filedialog_module
+            from tkinter import scrolledtext as scrolledtext_module
+            from tkinter import simpledialog as simpledialog_module
+            tk = tk_module
+            ttk = ttk_module
+            messagebox = messagebox_module
+            filedialog = filedialog_module
+            scrolledtext = scrolledtext_module
+            simpledialog = simpledialog_module
+        except ImportError as e:
+            raise ImportError(
+                "tkinter is not available in this environment. "
+                "The GUI cannot be used in headless environments. "
+                "Please use the CLI mode (--mode cli) or web app instead."
+            ) from e
+
 
 def get_default_font():
     """Get platform-appropriate default font."""
+    _ensure_tkinter()
     if sys.platform == 'darwin':
         return 'Helvetica Neue'
     if sys.platform == 'win32':
@@ -24,8 +61,9 @@ def get_default_font():
 class BookshelfGUI:
     """GUI application for managing bookshelf flashcards."""
 
-    def __init__(self, root: tk.Tk, db_path: str = "bookshelf.db"):
+    def __init__(self, root: 'tk.Tk', db_path: str = "bookshelf.db"):
         """Initialize the GUI application."""
+        _ensure_tkinter()
         self.root = root
         self.root.title("Bookshelf Flashcards")
         self.root.geometry("900x700")
@@ -100,7 +138,7 @@ class BookshelfGUI:
 
         # Status bar
         self.status_bar = ttk.Label(
-            self.root, text=f"Database: {self.db_path}", relief=tk.SUNKEN, anchor=tk.W
+            self.root, text=f"Database: {self.db_path}", relief="sunken", anchor="w"
         )
         self.status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
@@ -785,6 +823,9 @@ that they have read on their bookshelf.
 
 def main():
     """Main entry point for the GUI application."""
+    # Ensure tkinter is available before starting GUI
+    _ensure_tkinter()
+
     # pylint: disable=import-outside-toplevel
     import argparse
 

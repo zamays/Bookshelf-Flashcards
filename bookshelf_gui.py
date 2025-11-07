@@ -2,6 +2,8 @@
 GUI application for Bookshelf Flashcards.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 
@@ -25,18 +27,25 @@ def _ensure_tkinter():
     # pylint: disable=global-statement,import-outside-toplevel
     global tk, ttk, messagebox, filedialog, scrolledtext, simpledialog
     if tk is None:
-        import tkinter as tk_module
-        from tkinter import ttk as ttk_module
-        from tkinter import messagebox as messagebox_module
-        from tkinter import filedialog as filedialog_module
-        from tkinter import scrolledtext as scrolledtext_module
-        from tkinter import simpledialog as simpledialog_module
-        tk = tk_module
-        ttk = ttk_module
-        messagebox = messagebox_module
-        filedialog = filedialog_module
-        scrolledtext = scrolledtext_module
-        simpledialog = simpledialog_module
+        try:
+            import tkinter as tk_module
+            from tkinter import ttk as ttk_module
+            from tkinter import messagebox as messagebox_module
+            from tkinter import filedialog as filedialog_module
+            from tkinter import scrolledtext as scrolledtext_module
+            from tkinter import simpledialog as simpledialog_module
+            tk = tk_module
+            ttk = ttk_module
+            messagebox = messagebox_module
+            filedialog = filedialog_module
+            scrolledtext = scrolledtext_module
+            simpledialog = simpledialog_module
+        except ImportError as e:
+            raise ImportError(
+                "tkinter is not available in this environment. "
+                "The GUI cannot be used in headless environments. "
+                "Please use the CLI mode (--mode cli) or web app instead."
+            ) from e
 
 
 def get_default_font():
@@ -52,7 +61,7 @@ def get_default_font():
 class BookshelfGUI:
     """GUI application for managing bookshelf flashcards."""
 
-    def __init__(self, root, db_path: str = "bookshelf.db"):
+    def __init__(self, root: tk.Tk, db_path: str = "bookshelf.db"):
         """Initialize the GUI application."""
         _ensure_tkinter()
         self.root = root

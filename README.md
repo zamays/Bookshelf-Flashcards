@@ -24,6 +24,8 @@ The web version is perfect for:
 
 Your bookshelf will be live at `https://your-service-name.onrender.com`
 
+📖 See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions and troubleshooting.
+
 ### Run Web Version Locally
 
 ```bash

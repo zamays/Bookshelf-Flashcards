@@ -61,7 +61,7 @@ def get_default_font():
 class BookshelfGUI:
     """GUI application for managing bookshelf flashcards."""
 
-    def __init__(self, root: tk.Tk, db_path: str = "bookshelf.db"):
+    def __init__(self, root: 'tk.Tk', db_path: str = "bookshelf.db"):
         """Initialize the GUI application."""
         _ensure_tkinter()
         self.root = root
@@ -138,7 +138,7 @@ class BookshelfGUI:
 
         # Status bar
         self.status_bar = ttk.Label(
-            self.root, text=f"Database: {self.db_path}", relief=tk.SUNKEN, anchor=tk.W
+            self.root, text=f"Database: {self.db_path}", relief="sunken", anchor="w"
         )
         self.status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 

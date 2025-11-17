@@ -4,10 +4,19 @@ Automated tests for the tkinter GUI application.
 These tests use mocking to enable headless testing without requiring an X server.
 All tkinter components are mocked to test the business logic and GUI state management.
 """
+# pylint: disable=redefined-outer-name,protected-access,unused-variable,unused-import
+# pylint: disable=import-outside-toplevel,unused-argument
+# redefined-outer-name: pytest fixtures intentionally shadow outer scope
+# protected-access: tests need to access protected methods
+# unused-variable: some variables are used for test setup
+# unused-import: imports used in dynamic test scenarios
+# import-outside-toplevel: needed for proper patching and mocking
+# unused-argument: fixtures passed for consistency even when not used directly
+
 import os
 import tempfile
+from unittest.mock import MagicMock, patch
 import pytest
-from unittest.mock import MagicMock, Mock, patch, call, mock_open
 from database import BookDatabase
 
 
@@ -567,8 +576,6 @@ class TestTutorialMode:
     
     def test_start_tutorial_with_example_file(self, gui_instance):
         """Test starting tutorial with example_books.txt."""
-        example_content = "Book 1 by Author 1\nBook 2 by Author 2\n"
-        
         with patch('bookshelf_gui.os.path.exists', return_value=True), \
              patch('bookshelf_gui.messagebox.askyesno', return_value=True), \
              patch('bookshelf_gui.messagebox.showinfo') as mock_showinfo, \
@@ -693,7 +700,7 @@ class TestGetDefaultFont:
         """Test that get_default_font returns a valid font string."""
         with patch('bookshelf_gui._ensure_tkinter'):
             from bookshelf_gui import get_default_font
-            
+
             font = get_default_font()
             # Should return one of the valid fonts
             assert font in ['Helvetica Neue', 'Segoe UI', 'Liberation Sans']

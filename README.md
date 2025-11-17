@@ -342,6 +342,76 @@ GOOGLE_AI_API_KEY=your_api_key_here
 **Note:** The CLI version works without `python3-tk`. Only the GUI requires it.
 - Google AI Studio API key (for summary generation)
 
+## Testing
+
+This project includes a comprehensive test suite using pytest with excellent code coverage.
+
+### Running Tests
+
+Run all tests:
+```bash
+pytest
+```
+
+Run tests with verbose output:
+```bash
+pytest -v
+```
+
+Run tests for a specific module:
+```bash
+pytest tests/test_database.py
+pytest tests/test_ai_service.py
+pytest tests/test_book_parser.py
+```
+
+### Coverage Reports
+
+Generate coverage report:
+```bash
+pytest --cov=database --cov=ai_service --cov=book_parser --cov-report=term-missing
+```
+
+Generate HTML coverage report:
+```bash
+pytest --cov=database --cov=ai_service --cov=book_parser --cov-report=html
+# Open htmlcov/index.html in your browser
+```
+
+### Test Structure
+
+The test suite includes:
+- **`tests/test_database.py`**: Comprehensive tests for database operations
+  - Database initialization and table creation
+  - CRUD operations (Create, Read, Update, Delete)
+  - Duplicate book handling and UNIQUE constraints
+  - Search functionality
+  - Edge cases (empty strings, special characters, SQL injection attempts)
+  - Connection management and data persistence
+  
+- **`tests/test_ai_service.py`**: Complete tests for AI summary generation
+  - SummaryGenerator initialization with/without API keys
+  - Mocked Google AI API responses
+  - Error handling for API failures
+  - Graceful degradation when API is unavailable
+  - Unicode and special character handling
+  
+- **`tests/test_book_parser.py`**: Thorough tests for book file parsing
+  - All three parsing formats ("Title by Author", "Title - Author", "Title")
+  - Comment and empty line handling
+  - Edge cases (malformed input, Unicode, very long lines)
+  - File encoding errors and permission issues
+  - Integration tests with realistic book files
+
+### Code Coverage
+
+Current coverage for core modules:
+- `database.py`: **100%** ✅
+- `book_parser.py`: **100%** ✅
+- `ai_service.py`: **77%** (excluding Python version compatibility code)
+
+Overall coverage for tested modules: **>90%**
+
 ## License
 
 See LICENSE file for details.

@@ -160,6 +160,74 @@ class TestCSVParserSynonyms:
         assert books[0] == ("1984", "George Orwell")
 
 
+class TestCSVParserColumnOrdering:
+    """Tests for flexible column ordering in CSV files."""
+
+    def test_parse_csv_author_before_title(self, tmp_path):
+        """Test parsing CSV with Author column before Title column."""
+        csv_file = tmp_path / "books.csv"
+        csv_file.write_text(
+            "Author,Title\n"
+            "George Orwell,1984\n"
+            "Harper Lee,To Kill a Mockingbird\n",
+            encoding='utf-8'
+        )
+        
+        books = parse_csv_file(str(csv_file))
+        
+        assert len(books) == 2
+        assert books[0] == ("1984", "George Orwell")
+        assert books[1] == ("To Kill a Mockingbird", "Harper Lee")
+
+    def test_parse_csv_author_title_with_extra_columns_between(self, tmp_path):
+        """Test parsing CSV with columns in mixed order with extras between."""
+        csv_file = tmp_path / "books.csv"
+        csv_file.write_text(
+            "Author,Year,Title,Genre\n"
+            "George Orwell,1949,1984,Dystopian\n"
+            "Aldous Huxley,1932,Brave New World,Science Fiction\n",
+            encoding='utf-8'
+        )
+        
+        books = parse_csv_file(str(csv_file))
+        
+        assert len(books) == 2
+        assert books[0] == ("1984", "George Orwell")
+        assert books[1] == ("Brave New World", "Aldous Huxley")
+
+    def test_parse_csv_synonyms_with_reversed_order(self, tmp_path):
+        """Test parsing CSV with synonym headers in reversed order."""
+        csv_file = tmp_path / "books.csv"
+        csv_file.write_text(
+            "Writer,Book Name\n"
+            "Frank Herbert,Dune\n"
+            "Isaac Asimov,Foundation\n",
+            encoding='utf-8'
+        )
+        
+        books = parse_csv_file(str(csv_file))
+        
+        assert len(books) == 2
+        assert books[0] == ("Dune", "Frank Herbert")
+        assert books[1] == ("Foundation", "Isaac Asimov")
+
+    def test_parse_csv_title_at_end(self, tmp_path):
+        """Test parsing CSV with Title column at the end."""
+        csv_file = tmp_path / "books.csv"
+        csv_file.write_text(
+            "Year,Genre,Author,Rating,Title\n"
+            "1949,Dystopian,George Orwell,5,1984\n"
+            "1954,Fiction,William Golding,4,Lord of the Flies\n",
+            encoding='utf-8'
+        )
+        
+        books = parse_csv_file(str(csv_file))
+        
+        assert len(books) == 2
+        assert books[0] == ("1984", "George Orwell")
+        assert books[1] == ("Lord of the Flies", "William Golding")
+
+
 class TestCSVParserEdgeCases:
     """Tests for edge cases in CSV parsing."""
 

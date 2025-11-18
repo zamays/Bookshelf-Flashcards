@@ -8,6 +8,8 @@
     
     <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
         <h3 style="color: #667eea; margin-bottom: 15px;">File Format</h3>
+        
+        <h4 style="color: #667eea; margin-bottom: 10px; font-size: 1.1em;">Text Files (.txt)</h4>
         <p style="margin-bottom: 10px;">Your file should contain one book per line in one of these formats:</p>
         <ul style="margin-left: 20px; margin-bottom: 15px;">
             <li><code>Title by Author</code></li>
@@ -18,12 +20,25 @@
         <pre style="background: white; padding: 15px; border-radius: 5px; margin-top: 10px; overflow-x: auto;">1984 by George Orwell
 To Kill a Mockingbird - Harper Lee
 The Great Gatsby by F. Scott Fitzgerald</pre>
+
+        <h4 style="color: #667eea; margin-top: 20px; margin-bottom: 10px; font-size: 1.1em;">CSV Files (.csv)</h4>
+        <p style="margin-bottom: 10px;">Your CSV file should have a header row with columns for title and author. Column headers can be in any order and support these synonyms:</p>
+        <ul style="margin-left: 20px; margin-bottom: 15px;">
+            <li><strong>Title columns:</strong> <code>Title</code>, <code>Name</code>, <code>Book</code>, <code>Book Title</code>, <code>Book Name</code></li>
+            <li><strong>Author columns:</strong> <code>Author</code>, <code>Writer</code>, <code>By</code>, <code>Author Name</code>, <code>Written By</code></li>
+        </ul>
+        <p style="margin-bottom: 5px;"><strong>Note:</strong> Header matching is case-insensitive.</p>
+        <p style="margin: 0;"><strong>Example:</strong></p>
+        <pre style="background: white; padding: 15px; border-radius: 5px; margin-top: 10px; overflow-x: auto;">Title,Author
+1984,George Orwell
+To Kill a Mockingbird,Harper Lee
+The Great Gatsby,F. Scott Fitzgerald</pre>
     </div>
     
     <form method="POST" action="{{ url_for('add_from_file') }}" enctype="multipart/form-data">
         <div style="margin-bottom: 20px;">
-            <label for="file">Choose a text file (.txt) *</label>
-            <input type="file" id="file" name="file" accept=".txt" required>
+            <label for="file">Choose a file (.txt or .csv) *</label>
+            <input type="file" id="file" name="file" accept=".txt,.csv" required>
         </div>
         
         <div style="margin-bottom: 20px; padding: 15px; background: #fff3cd; border-radius: 5px; border-left: 4px solid #ffc107;">

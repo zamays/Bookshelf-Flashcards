@@ -25,7 +25,7 @@ MAX_SUMMARY_LENGTH = 10000
 MAX_FILENAME_LENGTH = 255
 
 # File upload constraints
-ALLOWED_EXTENSIONS = {'txt'}
+ALLOWED_EXTENSIONS = {'txt', 'csv'}
 MAX_FILE_SIZE = 16 * 1024 * 1024  # 16MB
 
 # Allowed characters patterns

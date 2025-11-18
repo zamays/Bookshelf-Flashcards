@@ -155,7 +155,7 @@ def sanitize_filter(text):
 
 # Configuration
 UPLOAD_FOLDER = '/tmp/uploads'
-ALLOWED_EXTENSIONS = {'txt'}
+ALLOWED_EXTENSIONS = {'txt', 'csv'}
 DATABASE_PATH = os.environ.get('DATABASE_PATH', 'bookshelf.db')
 
 if not os.path.exists(UPLOAD_FOLDER):

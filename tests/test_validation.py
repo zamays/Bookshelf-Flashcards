@@ -377,6 +377,11 @@ class TestValidateFilename:
         result = validate_filename("test.txt")
         assert result == "test.txt"
     
+    def test_filename_with_csv_extension(self):
+        """Test that .csv extension is allowed."""
+        result = validate_filename("test.csv")
+        assert result == "test.csv"
+    
     def test_filename_with_uppercase_extension(self):
         """Test that uppercase extension is normalized."""
         result = validate_filename("test.TXT")

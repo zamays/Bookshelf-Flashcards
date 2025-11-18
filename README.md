@@ -1,4 +1,9 @@
 # Bookshelf-Flashcards
+
+[![Test](https://github.com/zamays/Bookshelf-Flashcards/actions/workflows/test.yml/badge.svg)](https://github.com/zamays/Bookshelf-Flashcards/actions/workflows/test.yml)
+[![Lint](https://github.com/zamays/Bookshelf-Flashcards/actions/workflows/lint.yml/badge.svg)](https://github.com/zamays/Bookshelf-Flashcards/actions/workflows/lint.yml)
+[![codecov](https://codecov.io/gh/zamays/Bookshelf-Flashcards/branch/main/graph/badge.svg)](https://codecov.io/gh/zamays/Bookshelf-Flashcards)
+
 A helpful tool to refresh one's memory of the books that they have read on their bookshelf. Too often do people read a book and never think about it again. By keeping the stories in recent memory, their messages become more useful.
 
 **Available in GUI, CLI, and Web versions!** Choose the interface that works best for you.

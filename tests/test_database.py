@@ -226,23 +226,23 @@ class TestBookDatabaseEdgeCases:
     """Tests for edge cases and special scenarios."""
 
     def test_empty_string_title(self, temp_db_path):
-        """Test adding a book with empty title."""
+        """Test adding a book with empty title raises ValidationError."""
+        from validation import ValidationError
         db = BookDatabase(temp_db_path)
-        book_id = db.add_book("", "Author Name")
-        assert book_id > 0
         
-        book = db.get_book(book_id)
-        assert book['title'] == ""
+        with pytest.raises(ValidationError, match="cannot be empty"):
+            db.add_book("", "Author Name")
+        
         db.close()
 
     def test_empty_string_author(self, temp_db_path):
-        """Test adding a book with empty author."""
+        """Test adding a book with empty author raises ValidationError."""
+        from validation import ValidationError
         db = BookDatabase(temp_db_path)
-        book_id = db.add_book("Book Title", "")
-        assert book_id > 0
         
-        book = db.get_book(book_id)
-        assert book['author'] == ""
+        with pytest.raises(ValidationError, match="cannot be empty"):
+            db.add_book("Book Title", "")
+        
         db.close()
 
     def test_special_characters_in_title(self, temp_db_path):
@@ -268,13 +268,14 @@ class TestBookDatabaseEdgeCases:
         db.close()
 
     def test_very_long_title(self, temp_db_path):
-        """Test adding book with very long title."""
+        """Test adding book with very long title raises ValidationError."""
+        from validation import ValidationError
         db = BookDatabase(temp_db_path)
         long_title = "A" * 10000  # Very long title
-        book_id = db.add_book(long_title, "Author")
         
-        book = db.get_book(book_id)
-        assert book['title'] == long_title
+        with pytest.raises(ValidationError, match="cannot exceed"):
+            db.add_book(long_title, "Author")
+        
         db.close()
 
     def test_sql_injection_attempt_title(self, temp_db_path):

@@ -6,10 +6,20 @@ from __future__ import annotations
 
 import os
 import sys
+import logging
 
 from database import BookDatabase
 from ai_service import SummaryGenerator
 from book_parser import parse_book_file
+from validation import (
+    validate_all_book_data,
+    validate_file_path,
+    ValidationError
+)
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Lazy import tkinter - only imported when GUI is actually used
 # This allows the module to be imported in environments without tkinter
@@ -289,20 +299,21 @@ class BookshelfGUI:
             title = title_entry.get().strip()
             author = author_entry.get().strip()
 
-            if not title:
-                messagebox.showwarning(
-                    "Missing Information", "Please enter a book title."
+            # Validate inputs
+            try:
+                validated_title, validated_author, _ = validate_all_book_data(
+                    title, author, None
                 )
-                return
-            if not author:
+            except ValidationError as e:
+                logger.warning(f"Validation error in GUI add_book: {e}")
                 messagebox.showwarning(
-                    "Missing Information", "Please enter an author name."
+                    "Validation Error", f"Invalid input: {str(e)}"
                 )
                 return
 
             # Check if book already exists before adding
-            existing = self.db.search_books_by_title(title)
-            is_duplicate = any(book["author"] == author for book in existing)
+            existing = self.db.search_books_by_title(validated_title)
+            is_duplicate = any(book["author"] == validated_author for book in existing)
 
             if is_duplicate:
                 messagebox.showinfo(
@@ -315,17 +326,25 @@ class BookshelfGUI:
             status_label.config(text="Adding book...")
             dialog.update()
 
-            book_id = self.db.add_book(title, author)
+            try:
+                book_id = self.db.add_book(validated_title, validated_author)
+            except ValidationError as e:
+                logger.error(f"Database validation error in GUI: {e}")
+                messagebox.showerror(
+                    "Error", f"Failed to add book: {str(e)}"
+                )
+                return
 
             # Generate summary if AI service is available
             if self.ai_service:
                 status_label.config(text="Generating summary...")
                 dialog.update()
                 try:
-                    summary = self.ai_service.generate_summary(title, author)
+                    summary = self.ai_service.generate_summary(validated_title, validated_author)
                     self.db.update_summary(book_id, summary)
                     status_label.config(text="Book added with summary!")
                 except Exception as e:
+                    logger.warning(f"Summary generation failed in GUI: {e}")
                     status_label.config(
                         text=f"Book added (summary generation failed: {str(e)})"
                     )
@@ -333,7 +352,7 @@ class BookshelfGUI:
                 status_label.config(text="Book added (no AI summary available)")
 
             self._refresh_book_list()
-            messagebox.showinfo("Success", f"Added '{title}' by {author}")
+            messagebox.showinfo("Success", f"Added '{validated_title}' by {validated_author}")
             dialog.destroy()
 
         # Buttons
@@ -348,7 +367,7 @@ class BookshelfGUI:
         )
 
     def _add_books_from_file(self):
-        """Add books from a file."""
+        """Add books from a file with validation."""
         file_path = filedialog.askopenfilename(
             title="Select Book File",
             filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")],
@@ -357,8 +376,19 @@ class BookshelfGUI:
         if not file_path:
             return
 
+        # Validate file path
         try:
-            books = parse_book_file(file_path)
+            validated_path = validate_file_path(file_path)
+        except ValidationError as e:
+            logger.warning(f"Invalid file path in GUI: {file_path} - {e}")
+            messagebox.showerror(
+                "Invalid File Path",
+                f"The selected file path is invalid: {str(e)}"
+            )
+            return
+
+        try:
+            books = parse_book_file(validated_path)
 
             if not books:
                 messagebox.showinfo(
@@ -406,22 +436,38 @@ class BookshelfGUI:
                         skipped_count += 1
                         continue
 
-                # Check for duplicates before adding
-                existing = self.db.search_books_by_title(title)
-                if any(book["author"] == author for book in existing):
+                # Validate book data
+                try:
+                    validated_title, validated_author, _ = validate_all_book_data(
+                        title, author, None
+                    )
+                except ValidationError as e:
+                    logger.warning(f"Skipping invalid book from file: {title} - {e}")
                     skipped_count += 1
                     continue
 
-                book_id = self.db.add_book(title, author)
-                added_count += 1
+                # Check for duplicates before adding
+                existing = self.db.search_books_by_title(validated_title)
+                if any(book["author"] == validated_author for book in existing):
+                    skipped_count += 1
+                    continue
 
-                # Generate summary if AI service is available
-                if self.ai_service:
-                    try:
-                        summary = self.ai_service.generate_summary(title, author)
-                        self.db.update_summary(book_id, summary)
-                    except Exception:
-                        pass  # Continue even if summary generation fails
+                try:
+                    book_id = self.db.add_book(validated_title, validated_author)
+                    added_count += 1
+
+                    # Generate summary if AI service is available
+                    if self.ai_service:
+                        try:
+                            summary = self.ai_service.generate_summary(validated_title, validated_author)
+                            self.db.update_summary(book_id, summary)
+                        except Exception as e:
+                            logger.warning(f"Summary generation failed for {validated_title}: {e}")
+                            pass  # Continue even if summary generation fails
+                except ValidationError as e:
+                    logger.error(f"Failed to add book from file: {validated_title} - {e}")
+                    skipped_count += 1
+                    continue
 
             progress_bar["value"] = len(books)
             progress_dialog.destroy()

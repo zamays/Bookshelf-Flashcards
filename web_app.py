@@ -11,6 +11,7 @@ from werkzeug.utils import secure_filename
 from database import BookDatabase
 from ai_service import SummaryGenerator
 from book_parser import parse_book_file
+from config import get_config
 from validation import (
     validate_all_book_data,
     validate_book_id,
@@ -26,10 +27,51 @@ from validation import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Initialize configuration
+config = get_config()
+
+# Validate configuration and warn about security issues
+try:
+    config.validate()
+except Exception as e:
+    logger.error(f"Configuration validation failed: {e}")
+    if config.is_production:
+        raise
+
 app = Flask(__name__)
-# Use SECRET_KEY from environment or a static fallback for development
-# In production, always set SECRET_KEY environment variable
-app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+# Use SECRET_KEY from config
+app.secret_key = config.get_secret_key()
+
+# Add security headers to all responses
+@app.after_request
+def add_security_headers(response):
+    """Add security headers to all responses."""
+    # Content Security Policy - restrict resource loading
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data:; "
+        "font-src 'self' data:; "
+        "connect-src 'self'; "
+        "frame-ancestors 'none';"
+    )
+    
+    # Prevent clickjacking
+    response.headers['X-Frame-Options'] = 'DENY'
+    
+    # Prevent MIME type sniffing
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    
+    # Enable browser XSS protection
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    
+    # Strict Transport Security (HSTS) - only in production with HTTPS
+    if config.is_production and request.is_secure:
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    
+    return response
+
 
 # Add custom Jinja2 filter for HTML sanitization (though Jinja2 auto-escapes by default)
 @app.template_filter('sanitize')
@@ -53,9 +95,13 @@ db = BookDatabase(DATABASE_PATH)
 ai_service = None
 
 try:
-    ai_service = SummaryGenerator()
-except ValueError:
+    ai_service = SummaryGenerator(config=config)
+except ValueError as e:
     # AI service not available, that's okay
+    logger.info("AI service not initialized: API key not configured")
+except Exception as e:
+    # Log error but don't expose details
+    logger.error("Failed to initialize AI service")
     pass
 
 # Rate limiting for AI summary generation (track last request time per session)

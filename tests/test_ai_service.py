@@ -23,19 +23,22 @@ class TestSummaryGeneratorInit:
 
     def test_init_with_env_variable(self):
         """Test initialization with API key from environment."""
+        from config import reset_config
         with patch('ai_service.genai.configure') as mock_configure, \
              patch('ai_service.genai.GenerativeModel') as mock_model, \
-             patch.dict(os.environ, {'GOOGLE_AI_API_KEY': 'env_api_key_67890'}):
+             patch.dict(os.environ, {'GOOGLE_AI_API_KEY': 'AIzaSyBcdefghijklmnopqrstuvwxyz1234567890'}):
             
+            reset_config()  # Reset config to pick up new env
             generator = SummaryGenerator()
             
-            assert generator.api_key == "env_api_key_67890"
-            mock_configure.assert_called_once_with(api_key="env_api_key_67890")
+            assert generator.api_key == "AIzaSyBcdefghijklmnopqrstuvwxyz1234567890"
+            mock_configure.assert_called_once_with(api_key="AIzaSyBcdefghijklmnopqrstuvwxyz1234567890")
 
     def test_init_without_api_key_raises_error(self):
         """Test that initialization without API key raises ValueError."""
-        with patch.dict(os.environ, {}, clear=True), \
-             patch('ai_service.load_dotenv'):
+        from config import reset_config
+        with patch.dict(os.environ, {}, clear=True):
+            reset_config()  # Reset config to pick up cleared env
             
             with pytest.raises(ValueError) as exc_info:
                 SummaryGenerator()
@@ -44,8 +47,9 @@ class TestSummaryGeneratorInit:
 
     def test_init_with_placeholder_api_key_raises_error(self):
         """Test that initialization with placeholder API key raises ValueError."""
-        with patch.dict(os.environ, {'GOOGLE_AI_API_KEY': 'your_api_key_here'}), \
-             patch('ai_service.load_dotenv'):
+        from config import reset_config
+        with patch.dict(os.environ, {'GOOGLE_AI_API_KEY': 'your_api_key_here'}):
+            reset_config()  # Reset config to pick up new env
             
             with pytest.raises(ValueError) as exc_info:
                 SummaryGenerator()
@@ -53,14 +57,16 @@ class TestSummaryGeneratorInit:
             assert "Google AI Studio API key not found" in str(exc_info.value)
 
     def test_init_loads_dotenv(self):
-        """Test that initialization loads environment from .env file."""
-        with patch('ai_service.load_dotenv') as mock_load_dotenv, \
-             patch('ai_service.genai.configure'), \
+        """Test that initialization uses config module."""
+        from config import reset_config, Config
+        with patch('ai_service.genai.configure'), \
              patch('ai_service.genai.GenerativeModel'), \
-             patch.dict(os.environ, {'GOOGLE_AI_API_KEY': 'test_key'}):
+             patch.dict(os.environ, {'GOOGLE_AI_API_KEY': 'AIzaSyBcdefghijklmnopqrstuvwxyz1234567890'}):
             
-            SummaryGenerator()
-            mock_load_dotenv.assert_called_once()
+            reset_config()  # Reset config to pick up new env
+            generator = SummaryGenerator()
+            # Should use config module
+            assert generator.config is not None
 
 
 class TestSummaryGeneratorGenerateSummary:

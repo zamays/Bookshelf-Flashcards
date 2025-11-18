@@ -1,7 +1,6 @@
 """
 AI service module for generating book summaries using Google AI Studio API.
 """
-import os
 import sys
 from typing import Optional
 
@@ -16,26 +15,34 @@ if sys.version_info < (3, 10):
         pass  # importlib_metadata not available, will fail later if needed
 
 import google.generativeai as genai
-from dotenv import load_dotenv
+from config import get_config, Config
 
 
 class SummaryGenerator:
     """Generate book summaries using Google AI Studio API."""
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, config: Optional[Config] = None):
         """
         Initialize the summary generator.
 
         Args:
-            api_key: Google AI Studio API key (if not provided, loads from environment)
+            api_key: Google AI Studio API key (if not provided, loads from config)
+            config: Configuration instance (if not provided, uses global config)
         """
-        load_dotenv()
-        self.api_key = api_key or os.getenv("GOOGLE_AI_API_KEY")
-        if not self.api_key or self.api_key == "your_api_key_here":
+        self.config = config or get_config()
+        
+        # Get API key from parameter or config
+        if api_key:
+            self.api_key = api_key
+        else:
+            self.api_key = self.config.get_google_ai_api_key()
+        
+        if not self.api_key:
             raise ValueError(
                 "Google AI Studio API key not found. Please set "
                 "GOOGLE_AI_API_KEY environment variable or create "
                 "a .env file with your API key."
             )
+        
         genai.configure(api_key=self.api_key)
         self.model = genai.GenerativeModel('models/gemini-2.5-flash')
     def generate_summary(self, title: str, author: str) -> str:
@@ -62,4 +69,9 @@ class SummaryGenerator:
                 raise ValueError("No content generated from the AI model")
             return response.text.strip()
         except Exception as e:
-            raise ValueError(f"Error generating summary: {str(e)}") from e
+            # Never expose API keys in error messages
+            error_msg = str(e)
+            # Sanitize error message to remove any potential API key exposure
+            if self.api_key and self.api_key in error_msg:
+                error_msg = error_msg.replace(self.api_key, '[REDACTED]')
+            raise ValueError(f"Error generating summary: {error_msg}") from e

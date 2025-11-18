@@ -7,6 +7,10 @@ import os
 import time
 import logging
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_wtf import FlaskForm, CSRFProtect
+from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms.validators import DataRequired, Email, EqualTo, ValidationError as WTFValidationError
 from werkzeug.utils import secure_filename
 from database import BookDatabase
 from ai_service import SummaryGenerator
@@ -22,6 +26,7 @@ from validation import (
     sanitize_html,
     ValidationError
 )
+from auth import create_user, authenticate_user, validate_email, validate_password
 
 # Set up logging for security monitoring
 logging.basicConfig(level=logging.INFO)
@@ -41,6 +46,21 @@ except Exception as e:
 app = Flask(__name__)
 # Use SECRET_KEY from config
 app.secret_key = config.get_secret_key()
+
+# Configure session security
+app.config['SESSION_COOKIE_SECURE'] = config.is_production  # HTTPS only in production
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # CSRF protection
+app.config['PERMANENT_SESSION_LIFETIME'] = 604800  # 7 days
+
+# Initialize CSRF protection
+csrf = CSRFProtect(app)
+
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'Please log in to access this page.'
 
 # Add security headers to all responses
 @app.after_request
@@ -104,6 +124,33 @@ except Exception as e:
     logger.error("Failed to initialize AI service")
     pass
 
+
+# Flask-Login user loader
+@login_manager.user_loader
+def load_user(user_id):
+    """Load user by ID for Flask-Login."""
+    return db.get_user_by_id(int(user_id))
+
+
+# Form classes
+class LoginForm(FlaskForm):
+    """Login form."""
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    remember_me = BooleanField('Remember Me')
+    submit = SubmitField('Login')
+
+
+class RegistrationForm(FlaskForm):
+    """Registration form."""
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    password2 = PasswordField('Confirm Password', validators=[
+        DataRequired(), 
+        EqualTo('password', message='Passwords must match')
+    ])
+    submit = SubmitField('Register')
+
 # Rate limiting for AI summary generation (track last request time per session)
 # In production, use Redis or similar for distributed rate limiting
 ai_rate_limit = {}
@@ -118,8 +165,64 @@ def allowed_file(filename):
 @app.route('/')
 def index():
     """Home page showing list of books."""
-    books = db.get_all_books()
+    user_id = current_user.id if current_user.is_authenticated else None
+    books = db.get_all_books(user_id=user_id)
     return render_template('index.html', books=books, ai_available=ai_service is not None)
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """User login page."""
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = authenticate_user(db, form.email.data, form.password.data)
+        if user:
+            login_user(user, remember=form.remember_me.data)
+            next_page = request.args.get('next')
+            if not next_page or not next_page.startswith('/'):
+                next_page = url_for('index')
+            flash('Login successful!', 'success')
+            return redirect(next_page)
+        else:
+            flash('Invalid email or password.', 'error')
+    
+    return render_template('login.html', form=form)
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    """User registration page."""
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        try:
+            user_id = create_user(db, form.email.data, form.password.data)
+            if user_id:
+                flash('Registration successful! Please log in.', 'success')
+                return redirect(url_for('login'))
+            else:
+                flash('An account with this email already exists.', 'error')
+        except ValidationError as e:
+            flash(f'Registration failed: {str(e)}', 'error')
+        except Exception as e:
+            logger.error(f"Registration error: {e}")
+            flash('An error occurred during registration. Please try again.', 'error')
+    
+    return render_template('register.html', form=form)
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    """User logout."""
+    logout_user()
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('index'))
 
 
 def check_ai_rate_limit(session_id: str) -> bool:
@@ -143,6 +246,7 @@ def check_ai_rate_limit(session_id: str) -> bool:
 
 
 @app.route('/add', methods=['GET', 'POST'])
+@login_required
 def add_book():
     """Add a single book with input validation."""
     if request.method == 'POST':
@@ -159,7 +263,7 @@ def add_book():
         
         # Add book to database (validation happens in db.add_book too)
         try:
-            book_id = db.add_book(validated_title, validated_author)
+            book_id = db.add_book(validated_title, validated_author, user_id=current_user.id)
         except ValidationError as e:
             logger.error(f"Database validation error in add_book: {e}")
             flash(f'Error adding book: {str(e)}', 'error')
@@ -178,6 +282,7 @@ def add_book():
 
 
 @app.route('/add-from-file', methods=['GET', 'POST'])
+@login_required
 def add_from_file():
     """Add books from a file with comprehensive validation."""
     if request.method == 'POST':
@@ -258,7 +363,7 @@ def add_from_file():
                         continue
                     
                     try:
-                        book_id = db.add_book(validated_title, validated_author)
+                        book_id = db.add_book(validated_title, validated_author, user_id=current_user.id)
                         if book_id != -1:
                             added_count += 1
                             # Summaries can be generated later by the user
@@ -289,25 +394,28 @@ def add_from_file():
 
 
 @app.route('/book/<int:book_id>')
+@login_required
 def view_book(book_id):
     """View details of a specific book with validation."""
     # Validate book_id
     try:
         validated_id = validate_book_id(book_id)
-        book = db.get_book(validated_id)
+        user_id = current_user.id if current_user.is_authenticated else None
+        book = db.get_book(validated_id, user_id=user_id)
     except ValidationError as e:
         logger.warning(f"Invalid book_id in view_book: {book_id} - {e}")
         flash('Invalid book ID.', 'error')
         return redirect(url_for('index'))
     
     if not book:
-        flash('Book not found.', 'error')
+        flash('Book not found or access denied.', 'error')
         return redirect(url_for('index'))
     
     return render_template('book_detail.html', book=book, ai_available=ai_service is not None)
 
 
 @app.route('/generate-summaries', methods=['GET', 'POST'])
+@login_required
 def generate_summaries():
     """Generate summaries for selected books."""
     if request.method == 'POST':
@@ -337,7 +445,7 @@ def generate_summaries():
         error_count = 0
         
         for book_id in validated_ids:
-            book = db.get_book(book_id)
+            book = db.get_book(book_id, user_id=current_user.id)
             if not book:
                 error_count += 1
                 continue
@@ -354,7 +462,7 @@ def generate_summaries():
             
             try:
                 summary = ai_service.generate_summary(book['title'], book['author'])
-                db.update_summary(book_id, summary)
+                db.update_summary(book_id, summary, user_id=current_user.id)
                 success_count += 1
             except Exception as e:
                 logger.error(f"Failed to generate summary for book {book_id}: {e}")
@@ -379,7 +487,7 @@ def generate_summaries():
         return redirect(url_for('index'))
     
     # GET request - show form
-    books = db.get_all_books()
+    books = db.get_all_books(user_id=current_user.id)
     # Filter to books without summaries
     books_without_summaries = [book for book in books if not book.get('summary')]
     
@@ -389,18 +497,19 @@ def generate_summaries():
 
 
 @app.route('/book/<int:book_id>/edit-summary', methods=['GET', 'POST'])
+@login_required
 def edit_summary(book_id):
     """Edit summary for a specific book."""
     try:
         validated_id = validate_book_id(book_id)
-        book = db.get_book(validated_id)
+        book = db.get_book(validated_id, user_id=current_user.id)
     except ValidationError as e:
         logger.warning(f"Invalid book_id in edit_summary: {book_id} - {e}")
         flash('Invalid book ID.', 'error')
         return redirect(url_for('index'))
     
     if not book:
-        flash('Book not found.', 'error')
+        flash('Book not found or access denied.', 'error')
         return redirect(url_for('index'))
     
     if request.method == 'POST':
@@ -413,7 +522,7 @@ def edit_summary(book_id):
             try:
                 from validation import validate_summary
                 validated_summary = validate_summary(new_summary) if new_summary else None
-                db.update_summary(validated_id, validated_summary)
+                db.update_summary(validated_id, validated_summary, user_id=current_user.id)
                 flash(f'Summary updated for "{book["title"]}".', 'success')
             except ValidationError as e:
                 logger.warning(f"Invalid summary in edit_summary: {e}")
@@ -436,7 +545,7 @@ def edit_summary(book_id):
             
             try:
                 summary = ai_service.generate_summary(book['title'], book['author'])
-                db.update_summary(validated_id, summary)
+                db.update_summary(validated_id, summary, user_id=current_user.id)
                 flash(f'Summary regenerated for "{book["title"]}".', 'success')
             except Exception as e:
                 logger.error(f"Failed to regenerate summary: {e}")
@@ -448,9 +557,10 @@ def edit_summary(book_id):
 
 
 @app.route('/flashcards')
+@login_required
 def flashcards():
     """Flashcard mode."""
-    books = db.get_all_books()
+    books = db.get_all_books(user_id=current_user.id)
     if not books:
         flash('No books available for flashcard mode. Add some books first!', 'info')
         return redirect(url_for('index'))
@@ -459,19 +569,21 @@ def flashcards():
 
 
 @app.route('/api/books')
+@login_required
 def api_books():
     """API endpoint to get all books."""
-    books = db.get_all_books()
+    books = db.get_all_books(user_id=current_user.id)
     return jsonify(books)
 
 
 @app.route('/api/book/<int:book_id>')
+@login_required
 def api_book(book_id):
     """API endpoint to get a specific book with validation."""
     # Validate book_id
     try:
         validated_id = validate_book_id(book_id)
-        book = db.get_book(validated_id)
+        book = db.get_book(validated_id, user_id=current_user.id)
     except ValidationError as e:
         logger.warning(f"Invalid book_id in api_book: {book_id} - {e}")
         return jsonify({'error': 'Invalid book ID'}), 400

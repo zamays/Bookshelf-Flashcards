@@ -828,40 +828,40 @@ that they have read on their bookshelf.
                 "AI service is not configured. Please set up your Google AI Studio API key to generate summaries."
             )
             return
-        
+
         # Get books without summaries
         all_books = self.db.get_all_books()
         books_without_summaries = [book for book in all_books if not book.get('summary')]
-        
+
         if not books_without_summaries:
             messagebox.showinfo(
                 "All Summaries Complete",
                 "All books already have summaries!"
             )
             return
-        
+
         # Create dialog
         dialog = tk.Toplevel(self.root)
         dialog.title("Generate Summaries")
         dialog.geometry("600x500")
         dialog.transient(self.root)
         dialog.grab_set()
-        
+
         # Title
         ttk.Label(
             dialog,
             text="Select books to generate summaries for:",
             font=("Arial", 11)
         ).pack(pady=10, padx=10)
-        
+
         # Frame for listbox and scrollbar
         list_frame = ttk.Frame(dialog)
         list_frame.pack(fill="both", expand=True, padx=10, pady=5)
-        
+
         # Scrollbar
         scrollbar = ttk.Scrollbar(list_frame)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        
+
         # Listbox with checkboxes (using Listbox with selection)
         book_listbox = tk.Listbox(
             list_frame,
@@ -872,48 +872,48 @@ that they have read on their bookshelf.
         )
         book_listbox.pack(side=tk.LEFT, fill="both", expand=True)
         scrollbar.config(command=book_listbox.yview)
-        
+
         # Populate listbox
         for book in books_without_summaries:
             book_listbox.insert(tk.END, f"{book['title']} - {book['author']}")
-        
+
         # Select all button
         def select_all():
             book_listbox.select_set(0, tk.END)
-        
+
         def deselect_all():
             book_listbox.select_clear(0, tk.END)
-        
+
         # Button frame for select all/none
         select_frame = ttk.Frame(dialog)
         select_frame.pack(pady=5)
-        
+
         ttk.Button(select_frame, text="Select All", command=select_all).pack(side=tk.LEFT, padx=5)
         ttk.Button(select_frame, text="Deselect All", command=deselect_all).pack(side=tk.LEFT, padx=5)
-        
+
         # Status label
         status_label = ttk.Label(dialog, text="")
         status_label.pack(pady=5)
-        
+
         def generate_summaries():
             selected_indices = book_listbox.curselection()
-            
+
             if not selected_indices:
                 messagebox.showwarning("No Selection", "Please select at least one book.")
                 return
-            
+
             selected_books = [books_without_summaries[i] for i in selected_indices]
-            
+
             # Show progress
             success_count = 0
             error_count = 0
-            
+
             for idx, book in enumerate(selected_books):
                 status_label.config(
                     text=f"Generating summary {idx + 1} of {len(selected_books)}: {book['title']}"
                 )
                 dialog.update()
-                
+
                 try:
                     summary = self.ai_service.generate_summary(book['title'], book['author'])
                     self.db.update_summary(book['id'], summary)
@@ -921,27 +921,27 @@ that they have read on their bookshelf.
                 except Exception as e:
                     logger.error(f"Failed to generate summary for {book['title']}: {e}")
                     error_count += 1
-            
+
             self._refresh_book_list()
             dialog.destroy()
-            
+
             # Show result
             message = f"Successfully generated {success_count} summary/summaries."
             if error_count > 0:
                 message += f"\n{error_count} failed."
-            
+
             messagebox.showinfo("Summary Generation Complete", message)
-        
+
         # Bottom button frame
         button_frame = ttk.Frame(dialog)
         button_frame.pack(pady=10)
-        
+
         ttk.Button(
             button_frame,
             text="Generate Summaries",
             command=generate_summaries
         ).pack(side=tk.LEFT, padx=5)
-        
+
         ttk.Button(
             button_frame,
             text="Cancel",
@@ -955,21 +955,21 @@ that they have read on their bookshelf.
         dialog.geometry("650x550")
         dialog.transient(self.root)
         dialog.grab_set()
-        
+
         # Book info
         info_frame = ttk.Frame(dialog)
         info_frame.pack(fill="x", padx=20, pady=10)
-        
+
         ttk.Label(
             info_frame,
             text=f"{book['title']} by {book['author']}",
             font=("Arial", 12, "bold")
         ).pack()
-        
+
         # Summary text area
         summary_frame = ttk.LabelFrame(dialog, text="Summary", padding=10)
         summary_frame.pack(fill="both", expand=True, padx=20, pady=10)
-        
+
         summary_text = scrolledtext.ScrolledText(
             summary_frame,
             wrap=tk.WORD,
@@ -977,18 +977,18 @@ that they have read on their bookshelf.
             font=("Arial", 10)
         )
         summary_text.pack(fill="both", expand=True)
-        
+
         # Load current summary
         if book.get('summary'):
             summary_text.insert("1.0", book['summary'])
-        
+
         # Buttons
         button_frame = ttk.Frame(dialog)
         button_frame.pack(pady=10)
-        
+
         def save_summary():
             new_summary = summary_text.get("1.0", tk.END).strip()
-            
+
             try:
                 from validation import validate_summary
                 validated_summary = validate_summary(new_summary) if new_summary else None
@@ -999,7 +999,7 @@ that they have read on their bookshelf.
             except ValidationError as e:
                 logger.warning(f"Invalid summary: {e}")
                 messagebox.showerror("Validation Error", f"Invalid summary: {str(e)}")
-        
+
         def regenerate_summary():
             if not self.ai_service:
                 messagebox.showwarning(
@@ -1007,44 +1007,45 @@ that they have read on their bookshelf.
                     "AI service is not configured. Please set up your Google AI Studio API key."
                 )
                 return
-            
+
             # Confirm regeneration
-            if not messagebox.askyesno(
-                "Confirm Regeneration",
-                "Are you sure you want to regenerate the summary? This will replace the current summary."
-            ):
+            confirm_msg = (
+                "Are you sure you want to regenerate the summary? "
+                "This will replace the current summary."
+            )
+            if not messagebox.askyesno("Confirm Regeneration", confirm_msg):
                 return
-            
+
             try:
                 summary_text.delete("1.0", tk.END)
                 summary_text.insert("1.0", "Generating summary...")
                 dialog.update()
-                
+
                 summary = self.ai_service.generate_summary(book['title'], book['author'])
                 self.db.update_summary(book['id'], summary)
-                
+
                 summary_text.delete("1.0", tk.END)
                 summary_text.insert("1.0", summary)
-                
+
                 self._refresh_book_list()
                 messagebox.showinfo("Success", "Summary regenerated successfully!")
             except Exception as e:
                 logger.error(f"Failed to regenerate summary: {e}")
                 messagebox.showerror("Error", f"Failed to regenerate summary: {str(e)}")
-        
+
         ttk.Button(
             button_frame,
             text="Save Summary",
             command=save_summary
         ).pack(side=tk.LEFT, padx=5)
-        
+
         if self.ai_service:
             ttk.Button(
                 button_frame,
                 text="Regenerate with AI",
                 command=regenerate_summary
             ).pack(side=tk.LEFT, padx=5)
-        
+
         ttk.Button(
             button_frame,
             text="Cancel",

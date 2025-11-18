@@ -391,6 +391,29 @@ class Config:
             isinstance(p, (FileSecretProvider, CloudSecretProvider))
             for p in self.secret_providers
         )
+    
+    def get_redis_url(self) -> Optional[str]:
+        """
+        Get Redis URL for rate limiting.
+        
+        Returns:
+            Redis URL or None for in-memory fallback
+        """
+        return self.get_secret('REDIS_URL')
+    
+    def get_rate_limit_config(self) -> Dict[str, Any]:
+        """
+        Get rate limit configuration.
+        
+        Returns:
+            Dictionary of rate limit settings
+        """
+        return {
+            'ai_summary': self.get_secret('RATE_LIMIT_AI_SUMMARY', default='10 per hour'),
+            'file_upload': self.get_secret('RATE_LIMIT_FILE_UPLOAD', default='5 per hour'),
+            'api_endpoints': self.get_secret('RATE_LIMIT_API', default='100 per hour'),
+            'login_attempts': self.get_secret('RATE_LIMIT_LOGIN', default='5 per 15 minutes'),
+        }
 
 
 # Global config instance

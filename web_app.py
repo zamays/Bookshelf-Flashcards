@@ -4,13 +4,14 @@ Web application for Bookshelf Flashcards.
 Flask-based web interface for hosting on Render.com.
 """
 import os
-import time
 import logging
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_wtf import FlaskForm, CSRFProtect
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
-from wtforms.validators import DataRequired, Email, EqualTo, ValidationError as WTFValidationError
+from wtforms.validators import DataRequired, Email, EqualTo
 from werkzeug.utils import secure_filename
 from database import BookDatabase
 from ai_service import SummaryGenerator
@@ -26,7 +27,7 @@ from validation import (
     sanitize_html,
     ValidationError
 )
-from auth import create_user, authenticate_user, validate_email, validate_password
+from auth import create_user, authenticate_user
 
 # Set up logging for security monitoring
 logging.basicConfig(level=logging.INFO)
@@ -61,6 +62,59 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page.'
+
+# Initialize rate limiter
+redis_url = config.get_redis_url()
+rate_limit_config = config.get_rate_limit_config()
+
+if redis_url:
+    try:
+        limiter = Limiter(
+            app=app,
+            key_func=get_remote_address,
+            storage_uri=redis_url,
+            default_limits=["1000 per day", "200 per hour"],
+            strategy="fixed-window"
+        )
+        logger.info("Rate limiter initialized with Redis storage")
+    except Exception as e:
+        logger.warning("Failed to initialize Redis, falling back to in-memory storage: %s", e)
+        limiter = Limiter(
+            app=app,
+            key_func=get_remote_address,
+            default_limits=["1000 per day", "200 per hour"],
+            storage_uri="memory://",
+            strategy="fixed-window"
+        )
+else:
+    limiter = Limiter(
+        app=app,
+        key_func=get_remote_address,
+        default_limits=["1000 per day", "200 per hour"],
+        storage_uri="memory://",
+        strategy="fixed-window"
+    )
+    logger.info("Rate limiter initialized with in-memory storage")
+
+# Custom error handler for rate limit exceeded
+@app.errorhandler(429)
+def ratelimit_handler(e):  # pylint: disable=unused-argument
+    """Handle rate limit exceeded errors."""
+    logger.warning("Rate limit exceeded for IP: %s", get_remote_address())
+    
+    # User-friendly error message
+    if request.path.startswith('/api/'):
+        # JSON response for API endpoints
+        response = jsonify({
+            'error': 'Rate limit exceeded',
+            'message': 'Too many requests. Please try again later.'
+        })
+        response.status_code = 429
+        return response
+    else:
+        # HTML response for web pages
+        flash('Rate limit exceeded. Please try again later.', 'error')
+        return redirect(url_for('index'))
 
 # Add security headers to all responses
 @app.after_request
@@ -171,8 +225,9 @@ def index():
 
 
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit(rate_limit_config['login_attempts'])
 def login():
-    """User login page."""
+    """User login page with rate limiting."""
     if current_user.is_authenticated:
         return redirect(url_for('index'))
     
@@ -187,6 +242,8 @@ def login():
             flash('Login successful!', 'success')
             return redirect(next_page)
         else:
+            logger.warning("Failed login attempt for email: %s from IP: %s",
+                         form.email.data, get_remote_address())
             flash('Invalid email or password.', 'error')
     
     return render_template('login.html', form=form)
@@ -283,8 +340,9 @@ def add_book():
 
 @app.route('/add-from-file', methods=['GET', 'POST'])
 @login_required
+@limiter.limit(rate_limit_config['file_upload'])
 def add_from_file():
-    """Add books from a file with comprehensive validation."""
+    """Add books from a file with comprehensive validation and rate limiting."""
     if request.method == 'POST':
         if 'file' not in request.files:
             flash('No file uploaded.', 'error')
@@ -416,8 +474,9 @@ def view_book(book_id):
 
 @app.route('/generate-summaries', methods=['GET', 'POST'])
 @login_required
+@limiter.limit(rate_limit_config['ai_summary'])
 def generate_summaries():
-    """Generate summaries for selected books."""
+    """Generate summaries for selected books with rate limiting."""
     if request.method == 'POST':
         if not ai_service:
             flash('AI service not available. Please configure API key.', 'error')
@@ -498,8 +557,9 @@ def generate_summaries():
 
 @app.route('/book/<int:book_id>/edit-summary', methods=['GET', 'POST'])
 @login_required
+@limiter.limit(rate_limit_config['ai_summary'])
 def edit_summary(book_id):
-    """Edit summary for a specific book."""
+    """Edit summary for a specific book with rate limiting on regeneration."""
     try:
         validated_id = validate_book_id(book_id)
         book = db.get_book(validated_id, user_id=current_user.id)
@@ -570,16 +630,18 @@ def flashcards():
 
 @app.route('/api/books')
 @login_required
+@limiter.limit(rate_limit_config['api_endpoints'])
 def api_books():
-    """API endpoint to get all books."""
+    """API endpoint to get all books with rate limiting."""
     books = db.get_all_books(user_id=current_user.id)
     return jsonify(books)
 
 
 @app.route('/api/book/<int:book_id>')
 @login_required
+@limiter.limit(rate_limit_config['api_endpoints'])
 def api_book(book_id):
-    """API endpoint to get a specific book with validation."""
+    """API endpoint to get a specific book with validation and rate limiting."""
     # Validate book_id
     try:
         validated_id = validate_book_id(book_id)
@@ -591,6 +653,47 @@ def api_book(book_id):
     if not book:
         return jsonify({'error': 'Book not found'}), 404
     return jsonify(book)
+
+
+@app.route('/admin/rate-limits')
+@login_required
+def admin_rate_limits():
+    """Admin endpoint to view rate limit information."""
+    # Check if user is admin (email ends with @admin.local)
+    if not current_user.email.endswith('@admin.local'):
+        flash('Access denied. Admin privileges required.', 'error')
+        return redirect(url_for('index'))
+    
+    try:
+        # Get rate limit stats from the limiter storage
+        stats = {
+            'storage_type': 'Redis' if redis_url else 'In-Memory',
+            'redis_url': redis_url if redis_url else 'N/A',
+            'rate_limits': rate_limit_config,
+            'current_ip': get_remote_address(),
+        }
+        return jsonify(stats)
+    except Exception as e:
+        logger.error("Error fetching rate limit stats: %s", e)
+        return jsonify({'error': 'Failed to fetch rate limit stats'}), 500
+
+
+@app.route('/admin/rate-limits/reset', methods=['POST'])
+@login_required
+def admin_reset_rate_limits():
+    """Admin endpoint to reset rate limits."""
+    # Check if user is admin
+    if not current_user.email.endswith('@admin.local'):
+        return jsonify({'error': 'Access denied'}), 403
+    
+    try:
+        # Reset rate limits by clearing storage
+        limiter.reset()
+        logger.info("Rate limits reset by admin user: %s", current_user.email)
+        return jsonify({'success': True, 'message': 'Rate limits reset successfully'})
+    except Exception as e:
+        logger.error("Error resetting rate limits: %s", e)
+        return jsonify({'error': 'Failed to reset rate limits'}), 500
 
 
 @app.route('/health')

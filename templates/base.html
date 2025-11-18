@@ -170,6 +170,17 @@
             <a href="{{ url_for('add_from_file') }}">📁 Add from File</a>
             <a href="{{ url_for('generate_summaries') }}">✨ Generate Summaries</a>
             <a href="{{ url_for('flashcards') }}">🎴 Flashcards</a>
+            {% if current_user.is_authenticated %}
+                <span style="float: right;">
+                    <span style="color: #667eea;">{{ current_user.email }}</span>
+                    <a href="{{ url_for('logout') }}">Logout</a>
+                </span>
+            {% else %}
+                <span style="float: right;">
+                    <a href="{{ url_for('login') }}">Login</a>
+                    <a href="{{ url_for('register') }}">Register</a>
+                </span>
+            {% endif %}
         </nav>
         
         <main>

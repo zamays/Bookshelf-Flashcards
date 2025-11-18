@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Bookshelf Flashcards{% endblock %}
+
+{% block content %}
+<h2>Login</h2>
+
+<form method="POST" action="{{ url_for('login') }}">
+    {{ form.hidden_tag() }}
+    
+    <div class="form-group">
+        {{ form.email.label }}
+        {{ form.email(size=32) }}
+        {% if form.email.errors %}
+            <div class="error">
+                {% for error in form.email.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="form-group">
+        {{ form.password.label }}
+        {{ form.password(size=32) }}
+        {% if form.password.errors %}
+            <div class="error">
+                {% for error in form.password.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="form-group">
+        {{ form.remember_me() }} {{ form.remember_me.label }}
+    </div>
+    
+    <div class="form-group">
+        {{ form.submit(class="btn") }}
+    </div>
+</form>
+
+<p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+
+<style>
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .error {
+        color: #d32f2f;
+        margin-top: 5px;
+        font-size: 0.9em;
+    }
+    
+    input[type="checkbox"] {
+        width: auto;
+        margin-right: 5px;
+    }
+</style>
+{% endblock %}

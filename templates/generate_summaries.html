@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Generate Summaries - Bookshelf Flashcards{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <div style="margin-bottom: 20px;">
+        <a href="{{ url_for('index') }}" style="color: #667eea; text-decoration: none;">← Back to bookshelf</a>
+    </div>
+    
+    <h2 style="margin-bottom: 20px; color: #667eea;">Generate Summaries</h2>
+    
+    {% if not ai_available %}
+        <div style="padding: 20px; background: #fff3cd; border-radius: 5px; border-left: 4px solid #ffc107; color: #856404; margin-bottom: 20px;">
+            ⚠️ <strong>AI service not available.</strong> Please configure a Google AI Studio API key to generate summaries.
+        </div>
+        <a href="{{ url_for('index') }}" class="btn">Back to Bookshelf</a>
+    {% elif not books %}
+        <div style="padding: 20px; background: #d1ecf1; border-radius: 5px; border-left: 4px solid #0c5460; color: #0c5460; margin-bottom: 20px;">
+            ℹ️ All books already have summaries!
+        </div>
+        <a href="{{ url_for('index') }}" class="btn">Back to Bookshelf</a>
+    {% else %}
+        <p style="color: #6c757d; margin-bottom: 20px;">
+            Select the books you want to generate summaries for. Only books without existing summaries are shown.
+        </p>
+        
+        <form method="POST" style="background: white; border: 1px solid #dee2e6; border-radius: 10px; padding: 30px;">
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 10px;">
+                    <input type="checkbox" id="select-all" style="margin-right: 8px;">
+                    <strong>Select All ({{ books|length }} books)</strong>
+                </label>
+            </div>
+            
+            <div style="max-height: 400px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin-bottom: 20px;">
+                {% for book in books %}
+                    <label style="display: block; padding: 10px; margin-bottom: 5px; background: #f8f9fa; border-radius: 5px; cursor: pointer; transition: background 0.2s;" 
+                           onmouseover="this.style.background='#e9ecef'" 
+                           onmouseout="this.style.background='#f8f9fa'">
+                        <input type="checkbox" name="book_ids" value="{{ book.id }}" class="book-checkbox" style="margin-right: 8px;">
+                        <strong>{{ book.title }}</strong> by {{ book.author }}
+                    </label>
+                {% endfor %}
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn" style="flex: 1;">Generate Summaries</button>
+                <a href="{{ url_for('index') }}" class="btn" style="flex: 1; text-align: center; background: #6c757d; text-decoration: none; display: inline-block; line-height: 38px;">Cancel</a>
+            </div>
+        </form>
+        
+        <script>
+            // Select all functionality
+            document.getElementById('select-all').addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('.book-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+            });
+            
+            // Update select all state when individual checkboxes change
+            document.querySelectorAll('.book-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const allCheckboxes = document.querySelectorAll('.book-checkbox');
+                    const checkedCheckboxes = document.querySelectorAll('.book-checkbox:checked');
+                    document.getElementById('select-all').checked = allCheckboxes.length === checkedCheckboxes.length;
+                });
+            });
+        </script>
+    {% endif %}
+</div>
+{% endblock %}

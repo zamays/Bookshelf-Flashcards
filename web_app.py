@@ -169,24 +169,8 @@ def add_book():
             flash('Book already exists in database.', 'warning')
             return redirect(url_for('index'))
         
-        # Generate summary if AI service is available and rate limit allows
-        if ai_service:
-            # Use client IP as session identifier for rate limiting
-            session_id = request.remote_addr or 'unknown'
-            
-            if not check_ai_rate_limit(session_id):
-                flash(f'Successfully added "{validated_title}" by {validated_author}. Rate limit reached for AI summaries - please wait.', 'warning')
-                return redirect(url_for('index'))
-            
-            try:
-                summary = ai_service.generate_summary(validated_title, validated_author)
-                db.update_summary(book_id, summary)
-                flash(f'Successfully added "{validated_title}" by {validated_author} with AI-generated summary.', 'success')
-            except Exception as e:
-                logger.error(f"AI summary generation failed: {e}")
-                flash(f'Book added, but failed to generate summary: {str(e)}', 'warning')
-        else:
-            flash(f'Successfully added "{validated_title}" by {validated_author} (no AI summary available).', 'success')
+        # Book added without summary - user can generate it later
+        flash(f'Successfully added "{validated_title}" by {validated_author}. Generate summaries from the main page.', 'success')
         
         return redirect(url_for('index'))
     
@@ -277,14 +261,7 @@ def add_from_file():
                         book_id = db.add_book(validated_title, validated_author)
                         if book_id != -1:
                             added_count += 1
-                            # Generate summary if AI service is available and rate limit allows
-                            if ai_service and check_ai_rate_limit(session_id):
-                                try:
-                                    summary = ai_service.generate_summary(validated_title, validated_author)
-                                    db.update_summary(book_id, summary)
-                                except Exception as e:
-                                    logger.warning(f"Summary generation failed for {validated_title}: {e}")
-                                    pass  # Continue even if summary generation fails
+                            # Summaries can be generated later by the user
                     except ValidationError as e:
                         logger.warning(f"Failed to add book from file: {validated_title} - {e}")
                         validation_errors += 1
@@ -328,6 +305,146 @@ def view_book(book_id):
         return redirect(url_for('index'))
     
     return render_template('book_detail.html', book=book, ai_available=ai_service is not None)
+
+
+@app.route('/generate-summaries', methods=['GET', 'POST'])
+def generate_summaries():
+    """Generate summaries for selected books."""
+    if request.method == 'POST':
+        if not ai_service:
+            flash('AI service not available. Please configure API key.', 'error')
+            return redirect(url_for('generate_summaries'))
+        
+        # Get selected book IDs
+        selected_ids = request.form.getlist('book_ids')
+        if not selected_ids:
+            flash('No books selected. Please select at least one book.', 'warning')
+            return redirect(url_for('generate_summaries'))
+        
+        # Validate and convert IDs
+        try:
+            validated_ids = [validate_book_id(int(book_id)) for book_id in selected_ids]
+        except (ValueError, ValidationError) as e:
+            logger.warning(f"Invalid book IDs in generate_summaries: {selected_ids} - {e}")
+            flash('Invalid book selection.', 'error')
+            return redirect(url_for('generate_summaries'))
+        
+        # Rate limiting
+        session_id = request.remote_addr or 'unknown'
+        
+        success_count = 0
+        skipped_count = 0
+        error_count = 0
+        
+        for book_id in validated_ids:
+            book = db.get_book(book_id)
+            if not book:
+                error_count += 1
+                continue
+            
+            # Skip if already has summary
+            if book.get('summary'):
+                skipped_count += 1
+                continue
+            
+            # Check rate limit
+            if not check_ai_rate_limit(session_id):
+                flash(f'Rate limit reached. Generated {success_count} summaries. Please wait before generating more.', 'warning')
+                break
+            
+            try:
+                summary = ai_service.generate_summary(book['title'], book['author'])
+                db.update_summary(book_id, summary)
+                success_count += 1
+            except Exception as e:
+                logger.error(f"Failed to generate summary for book {book_id}: {e}")
+                error_count += 1
+        
+        # Build feedback message
+        messages = []
+        if success_count > 0:
+            messages.append(f'Successfully generated {success_count} summary/summaries')
+        if skipped_count > 0:
+            messages.append(f'skipped {skipped_count} (already had summaries)')
+        if error_count > 0:
+            messages.append(f'{error_count} failed')
+        
+        if success_count > 0:
+            flash('. '.join(messages).capitalize() + '.', 'success')
+        elif skipped_count > 0:
+            flash('. '.join(messages).capitalize() + '.', 'info')
+        else:
+            flash('Failed to generate summaries. Please try again.', 'error')
+        
+        return redirect(url_for('index'))
+    
+    # GET request - show form
+    books = db.get_all_books()
+    # Filter to books without summaries
+    books_without_summaries = [book for book in books if not book.get('summary')]
+    
+    return render_template('generate_summaries.html', 
+                         books=books_without_summaries, 
+                         ai_available=ai_service is not None)
+
+
+@app.route('/book/<int:book_id>/edit-summary', methods=['GET', 'POST'])
+def edit_summary(book_id):
+    """Edit summary for a specific book."""
+    try:
+        validated_id = validate_book_id(book_id)
+        book = db.get_book(validated_id)
+    except ValidationError as e:
+        logger.warning(f"Invalid book_id in edit_summary: {book_id} - {e}")
+        flash('Invalid book ID.', 'error')
+        return redirect(url_for('index'))
+    
+    if not book:
+        flash('Book not found.', 'error')
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        action = request.form.get('action')
+        
+        if action == 'save':
+            # Save edited summary
+            new_summary = request.form.get('summary', '').strip()
+            
+            try:
+                from validation import validate_summary
+                validated_summary = validate_summary(new_summary) if new_summary else None
+                db.update_summary(validated_id, validated_summary)
+                flash(f'Summary updated for "{book["title"]}".', 'success')
+            except ValidationError as e:
+                logger.warning(f"Invalid summary in edit_summary: {e}")
+                flash(f'Invalid summary: {str(e)}', 'error')
+                return redirect(url_for('edit_summary', book_id=validated_id))
+            
+            return redirect(url_for('view_book', book_id=validated_id))
+        
+        elif action == 'regenerate':
+            # Regenerate summary with AI
+            if not ai_service:
+                flash('AI service not available. Please configure API key.', 'error')
+                return redirect(url_for('edit_summary', book_id=validated_id))
+            
+            # Rate limiting
+            session_id = request.remote_addr or 'unknown'
+            if not check_ai_rate_limit(session_id):
+                flash('Rate limit reached. Please wait before regenerating.', 'warning')
+                return redirect(url_for('edit_summary', book_id=validated_id))
+            
+            try:
+                summary = ai_service.generate_summary(book['title'], book['author'])
+                db.update_summary(validated_id, summary)
+                flash(f'Summary regenerated for "{book["title"]}".', 'success')
+            except Exception as e:
+                logger.error(f"Failed to regenerate summary: {e}")
+                flash(f'Failed to regenerate summary: {str(e)}', 'error')
+            
+            return redirect(url_for('view_book', book_id=validated_id))
+    
+    return render_template('edit_summary.html', book=book, ai_available=ai_service is not None)
 
 
 @app.route('/flashcards')

@@ -2,32 +2,168 @@
 
 {% block title %}Add Book - Bookshelf Flashcards{% endblock %}
 
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 1em;
+        transition: border-color 0.3s;
+    }
+    
+    .form-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-input.error {
+        border-color: #dc3545;
+    }
+    
+    .error-message {
+        color: #dc3545;
+        font-size: 0.9em;
+        margin-top: 5px;
+        display: none;
+    }
+    
+    .error-message.show {
+        display: block;
+    }
+    
+    .tip-box {
+        margin-bottom: 20px;
+        padding: 15px;
+        background: #e7f3ff;
+        border-radius: 5px;
+        border-left: 4px solid #667eea;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .btn-cancel {
+        background: #6c757d;
+    }
+    
+    .btn-cancel:hover {
+        background: #5a6268;
+    }
+    
+    @media (max-width: 480px) {
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .form-actions button,
+        .form-actions a {
+            width: 100%;
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div style="max-width: 600px; margin: 0 auto;">
+<div class="form-container">
     <h2 style="margin-bottom: 30px; color: #667eea;">Add a New Book</h2>
     
-    <form method="POST" action="{{ url_for('add_book') }}">
+    <form method="POST" action="{{ url_for('add_book') }}" onsubmit="return validateForm()">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <div style="margin-bottom: 20px;">
+        
+        <div class="form-group">
             <label for="title">Book Title *</label>
-            <input type="text" id="title" name="title" required placeholder="Enter the book title">
+            <input type="text" id="title" name="title" class="form-input" required 
+                   placeholder="Enter the book title" maxlength="500"
+                   oninput="validateTitle()">
+            <div class="error-message" id="title-error">Please enter a valid book title (max 500 characters)</div>
         </div>
         
-        <div style="margin-bottom: 20px;">
+        <div class="form-group">
             <label for="author">Author *</label>
-            <input type="text" id="author" name="author" required placeholder="Enter the author's name">
+            <input type="text" id="author" name="author" class="form-input" required 
+                   placeholder="Enter the author's name" maxlength="200"
+                   oninput="validateAuthor()">
+            <div class="error-message" id="author-error">Please enter a valid author name (max 200 characters)</div>
         </div>
         
-        <div style="margin-bottom: 20px; padding: 15px; background: #e7f3ff; border-radius: 5px; border-left: 4px solid #667eea;">
+        <div class="tip-box">
             <p style="margin: 0; color: #004085;">
                 💡 <strong>Tip:</strong> After adding your book, you can generate a summary from the "Generate Summaries" page.
             </p>
         </div>
         
-        <div style="display: flex; gap: 10px;">
+        <div class="form-actions">
             <button type="submit">Add Book</button>
-            <a href="{{ url_for('index') }}" class="btn" style="background: #6c757d;">Cancel</a>
+            <a href="{{ url_for('index') }}" class="btn btn-cancel">Cancel</a>
         </div>
     </form>
 </div>
+
+<script>
+    function validateTitle() {
+        const titleInput = document.getElementById('title');
+        const errorDiv = document.getElementById('title-error');
+        const value = titleInput.value.trim();
+        
+        if (value.length === 0) {
+            titleInput.classList.add('error');
+            errorDiv.textContent = 'Book title is required';
+            errorDiv.classList.add('show');
+            return false;
+        } else if (value.length > 500) {
+            titleInput.classList.add('error');
+            errorDiv.textContent = 'Book title must be less than 500 characters';
+            errorDiv.classList.add('show');
+            return false;
+        } else {
+            titleInput.classList.remove('error');
+            errorDiv.classList.remove('show');
+            return true;
+        }
+    }
+    
+    function validateAuthor() {
+        const authorInput = document.getElementById('author');
+        const errorDiv = document.getElementById('author-error');
+        const value = authorInput.value.trim();
+        
+        if (value.length === 0) {
+            authorInput.classList.add('error');
+            errorDiv.textContent = 'Author name is required';
+            errorDiv.classList.add('show');
+            return false;
+        } else if (value.length > 200) {
+            authorInput.classList.add('error');
+            errorDiv.textContent = 'Author name must be less than 200 characters';
+            errorDiv.classList.add('show');
+            return false;
+        } else {
+            authorInput.classList.remove('error');
+            errorDiv.classList.remove('show');
+            return true;
+        }
+    }
+    
+    function validateForm() {
+        const titleValid = validateTitle();
+        const authorValid = validateAuthor();
+        return titleValid && authorValid;
+    }
+</script>
 {% endblock %}

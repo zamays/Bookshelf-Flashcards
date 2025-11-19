@@ -50,18 +50,103 @@
             background: #f8f9fa;
             padding: 15px 30px;
             border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            position: relative;
+        }
+        
+        .nav-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .nav-auth {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-left: auto;
         }
         
         nav a {
             color: #667eea;
             text-decoration: none;
-            margin-right: 20px;
             font-weight: 500;
             transition: color 0.3s;
+            white-space: nowrap;
         }
         
         nav a:hover {
             color: #764ba2;
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #667eea;
+            padding: 5px 10px;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            header h1 {
+                font-size: 1.8em;
+            }
+            
+            header p {
+                font-size: 0.95em;
+            }
+            
+            nav {
+                padding: 10px 15px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+                position: absolute;
+                right: 15px;
+                top: 10px;
+            }
+            
+            .nav-links {
+                display: none;
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+                margin-top: 15px;
+                padding-top: 15px;
+                border-top: 1px solid #dee2e6;
+            }
+            
+            .nav-links.active {
+                display: flex;
+            }
+            
+            .nav-auth {
+                width: 100%;
+                margin-left: 0;
+                margin-top: 10px;
+                padding-top: 10px;
+                border-top: 1px solid #dee2e6;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            nav a {
+                padding: 5px 0;
+            }
         }
         
         main {
@@ -154,10 +239,76 @@
             color: #6c757d;
             border-top: 1px solid #dee2e6;
         }
+        
+        /* Loading Spinner */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .loading-overlay.active {
+            display: flex;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: white;
+            margin-top: 20px;
+            font-size: 1.1em;
+        }
+        
+        button.loading, .btn.loading {
+            position: relative;
+            color: transparent;
+            pointer-events: none;
+        }
+        
+        button.loading::after, .btn.loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            margin-left: -8px;
+            margin-top: -8px;
+            border: 2px solid #ffffff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div style="text-align: center;">
+            <div class="spinner"></div>
+            <div class="loading-text" id="loadingText">Loading...</div>
+        </div>
+    </div>
     <div class="container">
         <header>
             <h1>📚 Bookshelf Flashcards</h1>
@@ -165,22 +316,23 @@
         </header>
         
         <nav>
-            <a href="{{ url_for('index') }}">📖 My Books</a>
-            <a href="{{ url_for('add_book') }}">➕ Add Book</a>
-            <a href="{{ url_for('add_from_file') }}">📁 Add from File</a>
-            <a href="{{ url_for('generate_summaries') }}">✨ Generate Summaries</a>
-            <a href="{{ url_for('flashcards') }}">🎴 Flashcards</a>
-            {% if current_user.is_authenticated %}
-                <span style="float: right;">
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Toggle menu">☰</button>
+            <div class="nav-links" id="navLinks">
+                <a href="{{ url_for('index') }}">📖 My Books</a>
+                <a href="{{ url_for('add_book') }}">➕ Add Book</a>
+                <a href="{{ url_for('add_from_file') }}">📁 Add from File</a>
+                <a href="{{ url_for('generate_summaries') }}">✨ Generate Summaries</a>
+                <a href="{{ url_for('flashcards') }}">🎴 Flashcards</a>
+            </div>
+            <div class="nav-auth">
+                {% if current_user.is_authenticated %}
                     <span style="color: #667eea;">{{ current_user.email }}</span>
                     <a href="{{ url_for('logout') }}">Logout</a>
-                </span>
-            {% else %}
-                <span style="float: right;">
+                {% else %}
                     <a href="{{ url_for('login') }}">Login</a>
                     <a href="{{ url_for('register') }}">Register</a>
-                </span>
-            {% endif %}
+                {% endif %}
+            </div>
         </nav>
         
         <main>
@@ -201,6 +353,70 @@
             <p>Bookshelf Flashcards - Keep your reading memories fresh</p>
         </footer>
     </div>
+    
+    <script>
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const navLinks = document.getElementById('navLinks');
+            navLinks.classList.toggle('active');
+        }
+        
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const nav = document.querySelector('nav');
+            const menuBtn = document.querySelector('.mobile-menu-btn');
+            const navLinks = document.getElementById('navLinks');
+            
+            if (!nav.contains(event.target) && navLinks.classList.contains('active')) {
+                navLinks.classList.remove('active');
+            }
+        });
+        
+        // Close mobile menu on window resize to desktop
+        window.addEventListener('resize', function() {
+            const navLinks = document.getElementById('navLinks');
+            if (window.innerWidth > 768 && navLinks.classList.contains('active')) {
+                navLinks.classList.remove('active');
+            }
+        });
+        
+        // Loading state utilities
+        function showLoading(text = 'Loading...') {
+            const overlay = document.getElementById('loadingOverlay');
+            const loadingText = document.getElementById('loadingText');
+            loadingText.textContent = text;
+            overlay.classList.add('active');
+        }
+        
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.remove('active');
+        }
+        
+        function setButtonLoading(button, loading = true) {
+            if (loading) {
+                button.classList.add('loading');
+                button.disabled = true;
+            } else {
+                button.classList.remove('loading');
+                button.disabled = false;
+            }
+        }
+        
+        // Show loading on form submissions
+        document.addEventListener('DOMContentLoaded', function() {
+            const forms = document.querySelectorAll('form[data-show-loading]');
+            forms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        setButtonLoading(submitBtn, true);
+                    }
+                });
+            });
+        });
+    </script>
+    
     {% block extra_js %}{% endblock %}
 </body>
 </html>

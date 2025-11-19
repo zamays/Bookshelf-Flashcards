@@ -2,7 +2,14 @@
 
 {% block content %}
 <div style="margin-bottom: 20px;">
-    <h2 style="margin-bottom: 20px; color: #667eea;">My Bookshelf</h2>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+        <h2 style="color: #667eea; margin: 0;">My Bookshelf</h2>
+        {% if books %}
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="🔍 Search books..." class="search-input" oninput="filterBooks()">
+        </div>
+        {% endif %}
+    </div>
     
     {% if not books %}
         <div style="text-align: center; padding: 60px 20px; background: #f8f9fa; border-radius: 10px;">
@@ -19,21 +26,28 @@
             {% endif %}
         </div>
         
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+        <div class="books-grid">
             {% for book in books %}
-                <div style="border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s;">
-                    <h3 style="color: #667eea; margin-bottom: 10px; font-size: 1.3em;">{{ book.title }}</h3>
-                    <p style="color: #6c757d; margin-bottom: 15px; font-style: italic;">by {{ book.author }}</p>
+                <div class="book-card">
+                    <h3 class="book-title">{{ book.title }}</h3>
+                    <p class="book-author">by {{ book.author }}</p>
                     
                     {% if book.summary %}
-                        <p style="color: #555; margin-bottom: 15px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
-                            {{ book.summary }}
-                        </p>
+                        <div class="book-summary-container">
+                            <p class="book-summary" id="summary-{{ book.id }}">
+                                {{ book.summary }}
+                            </p>
+                            {% if book.summary|length > 200 %}
+                                <button class="read-more-btn" onclick="toggleSummary({{ book.id }})" id="toggle-{{ book.id }}">
+                                    Read more
+                                </button>
+                            {% endif %}
+                        </div>
                     {% else %}
-                        <p style="color: #6c757d; margin-bottom: 15px; font-style: italic;">No summary available</p>
+                        <p class="book-no-summary">No summary available</p>
                     {% endif %}
                     
-                    <a href="{{ url_for('view_book', book_id=book.id) }}" class="btn" style="font-size: 0.9em; padding: 8px 16px;">View Details</a>
+                    <a href="{{ url_for('view_book', book_id=book.id) }}" class="btn btn-small">View Details</a>
                 </div>
             {% endfor %}
         </div>
@@ -41,9 +55,191 @@
 </div>
 
 <style>
+    .books-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    
+    .book-card {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+        display: flex;
+        flex-direction: column;
+    }
+    
     .book-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 5px 20px rgba(0,0,0,0.15) !important;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+    
+    .book-title {
+        color: #667eea;
+        margin-bottom: 10px;
+        font-size: 1.3em;
+        font-weight: 600;
+    }
+    
+    .book-author {
+        color: #6c757d;
+        margin-bottom: 15px;
+        font-style: italic;
+    }
+    
+    .book-summary-container {
+        flex: 1;
+        margin-bottom: 15px;
+    }
+    
+    .book-summary {
+        color: #555;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .book-summary.expanded {
+        display: block;
+        -webkit-line-clamp: unset;
+    }
+    
+    .book-no-summary {
+        color: #6c757d;
+        font-style: italic;
+        margin-bottom: 15px;
+        flex: 1;
+    }
+    
+    .read-more-btn {
+        background: none;
+        border: none;
+        color: #667eea;
+        cursor: pointer;
+        font-size: 0.9em;
+        padding: 5px 0;
+        text-decoration: underline;
+        margin-top: 5px;
+    }
+    
+    .read-more-btn:hover {
+        color: #764ba2;
+    }
+    
+    .btn-small {
+        font-size: 0.9em;
+        padding: 8px 16px;
+    }
+    
+    @media (max-width: 768px) {
+        .books-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .search-container {
+        position: relative;
+    }
+    
+    .search-input {
+        padding: 10px 15px;
+        border: 2px solid #ddd;
+        border-radius: 25px;
+        font-size: 1em;
+        width: 300px;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .book-card.hidden {
+        display: none;
+    }
+    
+    .no-results {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+    
+    @media (max-width: 768px) {
+        .search-input {
+            width: 100%;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .book-card {
+            padding: 15px;
+        }
+        
+        .book-title {
+            font-size: 1.1em;
+        }
     }
 </style>
+
+<script>
+    function toggleSummary(bookId) {
+        const summary = document.getElementById('summary-' + bookId);
+        const button = document.getElementById('toggle-' + bookId);
+        
+        if (summary.classList.contains('expanded')) {
+            summary.classList.remove('expanded');
+            button.textContent = 'Read more';
+        } else {
+            summary.classList.add('expanded');
+            button.textContent = 'Read less';
+        }
+    }
+    
+    function filterBooks() {
+        const searchInput = document.getElementById('searchInput');
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const bookCards = document.querySelectorAll('.book-card');
+        let visibleCount = 0;
+        
+        bookCards.forEach(card => {
+            const title = card.querySelector('.book-title').textContent.toLowerCase();
+            const author = card.querySelector('.book-author').textContent.toLowerCase();
+            const summaryEl = card.querySelector('.book-summary');
+            const summary = summaryEl ? summaryEl.textContent.toLowerCase() : '';
+            
+            const matches = title.includes(searchTerm) || 
+                          author.includes(searchTerm) || 
+                          summary.includes(searchTerm);
+            
+            if (matches || searchTerm === '') {
+                card.classList.remove('hidden');
+                visibleCount++;
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+        
+        // Show/hide no results message
+        let noResultsMsg = document.getElementById('noResultsMsg');
+        if (visibleCount === 0 && searchTerm !== '') {
+            if (!noResultsMsg) {
+                noResultsMsg = document.createElement('div');
+                noResultsMsg.id = 'noResultsMsg';
+                noResultsMsg.className = 'no-results';
+                noResultsMsg.innerHTML = '<p style="font-size: 1.2em;">📚 No books found matching "' + searchInput.value + '"</p><p>Try a different search term</p>';
+                document.querySelector('.books-grid').appendChild(noResultsMsg);
+            }
+        } else if (noResultsMsg) {
+            noResultsMsg.remove();
+        }
+    }
+</script>
 {% endblock %}

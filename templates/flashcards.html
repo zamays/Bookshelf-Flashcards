@@ -10,6 +10,29 @@
         text-align: center;
     }
     
+    .keyboard-hints {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 0.9em;
+        color: #6c757d;
+        border: 1px solid #dee2e6;
+    }
+    
+    .keyboard-hints p {
+        margin: 5px 0;
+    }
+    
+    .keyboard-hints kbd {
+        background: #667eea;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: monospace;
+        font-size: 0.9em;
+    }
+    
     .flashcard {
         background: white;
         border: 2px solid #667eea;
@@ -18,11 +41,12 @@
         min-height: 400px;
         box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
         position: relative;
-        transition: transform 0.3s;
+        transition: transform 0.3s, box-shadow 0.3s;
     }
     
     .flashcard:hover {
         transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
     }
     
     .flashcard-title {
@@ -78,7 +102,14 @@
 
 {% block content %}
 <div class="flashcard-container">
-    <h2 style="margin-bottom: 30px; color: #667eea;">Flashcard Mode</h2>
+    <h2 style="margin-bottom: 20px; color: #667eea;">Flashcard Mode</h2>
+    
+    {% if books %}
+    <div class="keyboard-hints">
+        <p><strong>⌨️ Keyboard Shortcuts:</strong></p>
+        <p><kbd>←</kbd> or <kbd>P</kbd> Previous • <kbd>→</kbd> or <kbd>N</kbd> Next • <kbd>Space</kbd> or <kbd>Enter</kbd> Reveal/Hide</p>
+    </div>
+    {% endif %}
     
     {% if not books %}
         <div style="text-align: center; padding: 60px 20px; background: #f8f9fa; border-radius: 10px;">

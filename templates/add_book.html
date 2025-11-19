@@ -7,6 +7,7 @@
     <h2 style="margin-bottom: 30px; color: #667eea;">Add a New Book</h2>
     
     <form method="POST" action="{{ url_for('add_book') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div style="margin-bottom: 20px;">
             <label for="title">Book Title *</label>
             <input type="text" id="title" name="title" required placeholder="Enter the book title">

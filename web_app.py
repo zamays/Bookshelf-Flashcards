@@ -28,6 +28,7 @@ from validation import (
     ValidationError
 )
 from auth import create_user, authenticate_user
+import time
 
 # Set up logging for security monitoring
 logging.basicConfig(level=logging.INFO)

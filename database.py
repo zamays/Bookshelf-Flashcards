@@ -97,7 +97,7 @@ class BookDatabase:
             )
         existing = cursor.fetchone()
         if existing:
-            return existing['id']
+            return -1  # Book already exists
         
         # Insert new book
         try:

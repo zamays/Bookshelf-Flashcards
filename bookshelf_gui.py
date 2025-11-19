@@ -182,6 +182,30 @@ class BookshelfGUI:
             side=tk.LEFT, padx=2
         )
 
+        # Search and sort controls
+        search_sort_frame = ttk.Frame(self.list_frame)
+        search_sort_frame.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
+        
+        # Search
+        ttk.Label(search_sort_frame, text="Search:").pack(side=tk.LEFT, padx=(0, 5))
+        self.search_var = tk.StringVar()
+        self.search_var.trace('w', lambda *args: self._filter_books())
+        search_entry = ttk.Entry(search_sort_frame, textvariable=self.search_var, width=30)
+        search_entry.pack(side=tk.LEFT, padx=2)
+        
+        # Sort
+        ttk.Label(search_sort_frame, text="Sort by:").pack(side=tk.LEFT, padx=(20, 5))
+        self.sort_var = tk.StringVar(value="recent")
+        sort_combo = ttk.Combobox(
+            search_sort_frame,
+            textvariable=self.sort_var,
+            values=["recent", "title", "author"],
+            state="readonly",
+            width=15
+        )
+        sort_combo.pack(side=tk.LEFT, padx=2)
+        sort_combo.bind("<<ComboboxSelected>>", lambda e: self._refresh_book_list())
+
         # Book list with scrollbar
         list_container = ttk.Frame(self.list_frame)
         list_container.pack(fill="both", expand=True, padx=5, pady=5)
@@ -467,20 +491,48 @@ class BookshelfGUI:
             messagebox.showerror("Error", f"Error reading file: {str(e)}")
 
     def _refresh_book_list(self):
-        """Refresh the book list."""
+        """Refresh the book list with sorting."""
+        sort_by = self.sort_var.get() if hasattr(self, 'sort_var') else "recent"
+        all_books = self.db.get_all_books(sort_by=sort_by)
+        
+        # Store all books for reference
+        self.all_books = all_books
+        
+        # Apply search filter if present
+        self._filter_books()
+    
+    def _filter_books(self):
+        """Filter and display books based on search term."""
         self.book_listbox.delete(0, tk.END)
-        books = self.db.get_all_books()
-
-        for book in books:
+        
+        if not hasattr(self, 'all_books'):
+            self.all_books = self.db.get_all_books()
+        
+        search_term = self.search_var.get().lower() if hasattr(self, 'search_var') else ""
+        
+        # Filter books based on search term
+        filtered_books = []
+        for book in self.all_books:
+            if search_term == "" or \
+               search_term in book['title'].lower() or \
+               search_term in book['author'].lower() or \
+               (book['summary'] and search_term in book['summary'].lower()):
+                filtered_books.append(book)
+        
+        # Display filtered books
+        for book in filtered_books:
             display_text = f"{book['title']} - {book['author']}"
             if not book["summary"]:
                 display_text += " (no summary)"
             self.book_listbox.insert(tk.END, display_text)
 
-        self.book_count_label.config(text=f"Total books: {len(books)}")
+        self.book_count_label.config(
+            text=f"Total books: {len(filtered_books)}" + 
+            (f" (of {len(self.all_books)})" if search_term else "")
+        )
 
-        # Store books for reference
-        self.books = books
+        # Store filtered books for reference
+        self.books = filtered_books
 
     def _view_book_details(self):
         """View details of selected book."""
@@ -545,9 +597,49 @@ class BookshelfGUI:
         button_frame = ttk.Frame(dialog)
         button_frame.pack(pady=10)
 
+        def generate_summary():
+            """Generate summary for this single book."""
+            if not self.ai_service:
+                messagebox.showwarning(
+                    "AI Service Not Available",
+                    "AI service is not configured. Please set up your Google AI Studio API key."
+                )
+                return
+            
+            if book.get('summary'):
+                messagebox.showinfo("Summary Exists", "This book already has a summary.")
+                return
+            
+            try:
+                summary = self.ai_service.generate_summary(book['title'], book['author'])
+                self.db.update_summary(book['id'], summary)
+                
+                # Update the summary text display
+                summary_text.config(state="normal")
+                summary_text.delete("1.0", tk.END)
+                summary_text.insert("1.0", summary)
+                summary_text.config(state="disabled")
+                
+                # Update the book object
+                book['summary'] = summary
+                
+                # Refresh the book list
+                self._refresh_book_list()
+                
+                messagebox.showinfo("Success", f"Summary generated for '{book['title']}'.")
+            except Exception as e:
+                logger.error(f"Failed to generate summary: {e}")
+                messagebox.showerror("Error", f"Failed to generate summary: {str(e)}")
+
         def edit_summary():
             dialog.destroy()
             self._show_edit_summary_dialog(book)
+
+        # Show Generate Summary button only if no summary exists and AI service is available
+        if not book.get("summary") and self.ai_service:
+            ttk.Button(
+                button_frame, text="Generate Summary", command=generate_summary
+            ).pack(side=tk.LEFT, padx=5)
 
         ttk.Button(
             button_frame, text="Edit Summary", command=edit_summary

@@ -3,85 +3,230 @@
 {% block title %}Register - Bookshelf Flashcards{% endblock %}
 
 {% block content %}
-<h2>Register</h2>
+<div style="max-width: 500px; margin: 0 auto;">
+    <h2 style="color: #667eea; margin-bottom: 30px;">Register</h2>
 
-<form method="POST" action="{{ url_for('register') }}">
-    {{ form.hidden_tag() }}
-    
-    <div class="form-group">
-        {{ form.email.label }}
-        {{ form.email(size=32) }}
-        {% if form.email.errors %}
-            <div class="error">
-                {% for error in form.email.errors %}
-                    <p>{{ error }}</p>
-                {% endfor %}
+    <form method="POST" action="{{ url_for('register') }}">
+        {{ form.hidden_tag() }}
+        
+        <div class="form-group">
+            {{ form.email.label }}
+            {{ form.email(size=32, id="email-input", oninput="validateEmail()") }}
+            <div class="error-message" id="email-error">
+                {% if form.email.errors %}
+                    {% for error in form.email.errors %}
+                        {{ error }}
+                    {% endfor %}
+                {% endif %}
             </div>
-        {% endif %}
-    </div>
-    
-    <div class="form-group">
-        {{ form.password.label }}
-        {{ form.password(size=32) }}
-        {% if form.password.errors %}
-            <div class="error">
-                {% for error in form.password.errors %}
-                    <p>{{ error }}</p>
-                {% endfor %}
+        </div>
+        
+        <div class="form-group">
+            {{ form.password.label }}
+            {{ form.password(size=32, id="password-input", oninput="validatePassword()") }}
+            <div class="password-strength" id="password-strength">
+                <div class="strength-bar" id="strength-bar"></div>
             </div>
-        {% endif %}
-    </div>
-    
-    <div class="form-group">
-        {{ form.password2.label }}
-        {{ form.password2(size=32) }}
-        {% if form.password2.errors %}
-            <div class="error">
-                {% for error in form.password2.errors %}
-                    <p>{{ error }}</p>
-                {% endfor %}
+            <div class="error-message" id="password-error">
+                {% if form.password.errors %}
+                    {% for error in form.password.errors %}
+                        {{ error }}
+                    {% endfor %}
+                {% endif %}
             </div>
-        {% endif %}
-    </div>
-    
-    <div class="form-group">
-        {{ form.submit(class="btn") }}
-    </div>
-</form>
+        </div>
+        
+        <div class="form-group">
+            {{ form.password2.label }}
+            {{ form.password2(size=32, id="password2-input", oninput="validatePasswordMatch()") }}
+            <div class="error-message" id="password2-error">
+                {% if form.password2.errors %}
+                    {% for error in form.password2.errors %}
+                        {{ error }}
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="password-requirements">
+            <p><strong>Password Requirements:</strong></p>
+            <ul id="requirements-list">
+                <li id="req-length">✗ At least 8 characters long</li>
+                <li id="req-lowercase">✗ Contains at least one lowercase letter</li>
+                <li id="req-uppercase">✗ Contains at least one uppercase letter</li>
+                <li id="req-digit">✗ Contains at least one digit</li>
+            </ul>
+        </div>
+        
+        <div class="form-group">
+            {{ form.submit(class="btn") }}
+        </div>
+    </form>
 
-<div class="password-requirements">
-    <p><strong>Password Requirements:</strong></p>
-    <ul>
-        <li>At least 8 characters long</li>
-        <li>Contains at least one lowercase letter</li>
-        <li>Contains at least one uppercase letter</li>
-        <li>Contains at least one digit</li>
-    </ul>
+    <p style="text-align: center; margin-top: 20px;">
+        Already have an account? <a href="{{ url_for('login') }}">Login here</a>
+    </p>
 </div>
-
-<p>Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
 
 <style>
     .form-group {
         margin-bottom: 20px;
     }
     
-    .error {
-        color: #d32f2f;
+    .error-message {
+        color: #dc3545;
         margin-top: 5px;
         font-size: 0.9em;
+        min-height: 20px;
+    }
+    
+    .password-strength {
+        height: 4px;
+        background: #e0e0e0;
+        border-radius: 2px;
+        margin-top: 8px;
+        overflow: hidden;
+    }
+    
+    .strength-bar {
+        height: 100%;
+        width: 0%;
+        transition: all 0.3s ease;
+        border-radius: 2px;
+    }
+    
+    .strength-bar.weak {
+        width: 33%;
+        background: #dc3545;
+    }
+    
+    .strength-bar.medium {
+        width: 66%;
+        background: #ffc107;
+    }
+    
+    .strength-bar.strong {
+        width: 100%;
+        background: #28a745;
     }
     
     .password-requirements {
-        background: #f5f5f5;
+        background: #f8f9fa;
         padding: 15px;
         border-radius: 5px;
         margin: 20px 0;
+        border: 1px solid #dee2e6;
     }
     
     .password-requirements ul {
         margin-left: 20px;
         margin-top: 10px;
+        list-style: none;
+    }
+    
+    .password-requirements li {
+        margin: 5px 0;
+        color: #6c757d;
+        transition: color 0.3s;
+    }
+    
+    .password-requirements li.met {
+        color: #28a745;
+    }
+    
+    @media (max-width: 480px) {
+        .password-requirements {
+            padding: 10px;
+        }
     }
 </style>
+
+<script>
+    function validateEmail() {
+        const emailInput = document.getElementById('email-input');
+        const errorDiv = document.getElementById('email-error');
+        const email = emailInput.value.trim();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+        if (email.length === 0) {
+            errorDiv.textContent = '';
+            return true;
+        } else if (!emailRegex.test(email)) {
+            errorDiv.textContent = 'Please enter a valid email address';
+            return false;
+        } else {
+            errorDiv.textContent = '';
+            return true;
+        }
+    }
+    
+    function validatePassword() {
+        const password = document.getElementById('password-input').value;
+        const strengthBar = document.getElementById('strength-bar');
+        const errorDiv = document.getElementById('password-error');
+        
+        // Check requirements
+        const hasLength = password.length >= 8;
+        const hasLower = /[a-z]/.test(password);
+        const hasUpper = /[A-Z]/.test(password);
+        const hasDigit = /\d/.test(password);
+        
+        // Update requirement list
+        document.getElementById('req-length').className = hasLength ? 'met' : '';
+        document.getElementById('req-length').textContent = (hasLength ? '✓' : '✗') + ' At least 8 characters long';
+        
+        document.getElementById('req-lowercase').className = hasLower ? 'met' : '';
+        document.getElementById('req-lowercase').textContent = (hasLower ? '✓' : '✗') + ' Contains at least one lowercase letter';
+        
+        document.getElementById('req-uppercase').className = hasUpper ? 'met' : '';
+        document.getElementById('req-uppercase').textContent = (hasUpper ? '✓' : '✗') + ' Contains at least one uppercase letter';
+        
+        document.getElementById('req-digit').className = hasDigit ? 'met' : '';
+        document.getElementById('req-digit').textContent = (hasDigit ? '✓' : '✗') + ' Contains at least one digit';
+        
+        // Calculate strength
+        const metCount = [hasLength, hasLower, hasUpper, hasDigit].filter(Boolean).length;
+        
+        strengthBar.className = 'strength-bar';
+        if (password.length === 0) {
+            strengthBar.className = 'strength-bar';
+        } else if (metCount <= 2) {
+            strengthBar.className = 'strength-bar weak';
+        } else if (metCount === 3) {
+            strengthBar.className = 'strength-bar medium';
+        } else if (metCount === 4) {
+            strengthBar.className = 'strength-bar strong';
+        }
+        
+        // Clear error if all requirements met
+        if (metCount === 4) {
+            errorDiv.textContent = '';
+        }
+        
+        // Validate password match if confirm password is filled
+        const password2 = document.getElementById('password2-input').value;
+        if (password2.length > 0) {
+            validatePasswordMatch();
+        }
+        
+        return metCount === 4;
+    }
+    
+    function validatePasswordMatch() {
+        const password = document.getElementById('password-input').value;
+        const password2 = document.getElementById('password2-input').value;
+        const errorDiv = document.getElementById('password2-error');
+        
+        if (password2.length === 0) {
+            errorDiv.textContent = '';
+            return true;
+        } else if (password !== password2) {
+            errorDiv.textContent = 'Passwords do not match';
+            return false;
+        } else {
+            errorDiv.textContent = '';
+            return true;
+        }
+    }
+</script>
 {% endblock %}

@@ -57,8 +57,8 @@ class SummaryGenerator:
             Book summary
         """
         prompt = (
-            f'Please provide a concise but comprehensive summary of the book '
-            f'"{title}" by {author}. '
+            f'If it exists, provide a concise but comprehensive summary of the book '
+            f'"{title}" by {author}, otherwise, return "No summary available". '
             f'Include the main themes, key plot points (if fiction), and the '
             f'overall message or takeaways. '
             f'Keep it to about 200-300 words so it can serve as a memory refresher.'

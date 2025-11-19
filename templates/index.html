@@ -5,8 +5,18 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
         <h2 style="color: #667eea; margin: 0;">My Bookshelf</h2>
         {% if books %}
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="🔍 Search books..." class="search-input" oninput="filterBooks()">
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="🔍 Search books..." class="search-input" oninput="filterBooks()">
+            </div>
+            <div class="sort-container">
+                <label style="color: #6c757d; margin-right: 5px; font-size: 0.95em;">Sort by:</label>
+                <select id="sortSelect" class="sort-select" onchange="changeSorting()">
+                    <option value="recent" {% if current_sort == 'recent' %}selected{% endif %}>Recently Added</option>
+                    <option value="title" {% if current_sort == 'title' %}selected{% endif %}>Title</option>
+                    <option value="author" {% if current_sort == 'author' %}selected{% endif %}>Author</option>
+                </select>
+            </div>
         </div>
         {% endif %}
     </div>
@@ -172,9 +182,38 @@
         color: #6c757d;
     }
     
+    .sort-container {
+        display: flex;
+        align-items: center;
+    }
+    
+    .sort-select {
+        padding: 10px 15px;
+        border: 2px solid #ddd;
+        border-radius: 25px;
+        font-size: 1em;
+        background-color: white;
+        cursor: pointer;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    
+    .sort-select:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
     @media (max-width: 768px) {
         .search-input {
             width: 100%;
+        }
+        
+        .sort-container {
+            width: 100%;
+        }
+        
+        .sort-select {
+            flex: 1;
         }
     }
     
@@ -201,6 +240,14 @@
             summary.classList.add('expanded');
             button.textContent = 'Read less';
         }
+    }
+    
+    function changeSorting() {
+        const sortSelect = document.getElementById('sortSelect');
+        const sortValue = sortSelect.value;
+        const url = new URL(window.location);
+        url.searchParams.set('sort', sortValue);
+        window.location.href = url.toString();
     }
     
     function filterBooks() {

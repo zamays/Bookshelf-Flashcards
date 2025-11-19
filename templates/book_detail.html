@@ -13,19 +13,23 @@
         <p style="color: #6c757d; font-size: 1.2em; font-style: italic; margin-bottom: 25px;">by {{ book.author }}</p>
         
         <div style="border-top: 2px solid #667eea; padding-top: 25px; margin-top: 25px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                 <h3 style="color: #667eea; margin: 0;">Summary</h3>
-                <a href="{{ url_for('edit_summary', book_id=book.id) }}" class="btn" style="font-size: 0.9em; padding: 8px 16px;">Edit Summary</a>
+                <div style="display: flex; gap: 10px;">
+                    {% if not book.summary and ai_available %}
+                    <form method="POST" action="{{ url_for('generate_single_summary', book_id=book.id) }}" style="margin: 0;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" class="btn" style="font-size: 0.9em; padding: 8px 16px; background: #28a745; white-space: nowrap;">Generate Summary</button>
+                    </form>
+                    {% endif %}
+                    <a href="{{ url_for('edit_summary', book_id=book.id) }}" class="btn" style="font-size: 0.9em; padding: 8px 16px; white-space: nowrap;">Edit Summary</a>
+                </div>
             </div>
             {% if book.summary %}
                 <p style="line-height: 1.8; color: #333; white-space: pre-wrap;">{{ book.summary }}</p>
             {% else %}
                 <p style="color: #6c757d; font-style: italic;">No summary available for this book.</p>
-                {% if ai_available %}
-                    <p style="margin-top: 15px;">
-                        <em>You can generate a summary from the <a href="{{ url_for('generate_summaries') }}" style="color: #667eea;">Generate Summaries</a> page or edit to add one manually.</em>
-                    </p>
-                {% else %}
+                {% if not ai_available %}
                     <p style="margin-top: 15px; padding: 15px; background: #fff3cd; border-radius: 5px; border-left: 4px solid #ffc107; color: #856404;">
                         💡 <strong>Tip:</strong> Configure an AI API key to automatically generate summaries for your books, or add one manually using the Edit Summary button.
                     </p>

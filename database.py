@@ -177,26 +177,40 @@ class BookDatabase:
             cursor.execute("SELECT * FROM books WHERE id = ?", (validated_id,))
         result = cursor.fetchone()
         return dict(result) if result else None
-    def get_all_books(self, user_id: Optional[int] = None) -> List[dict]:
+    def get_all_books(self, user_id: Optional[int] = None, sort_by: str = "recent") -> List[dict]:
         """
         Get all books from the database.
         
         Args:
             user_id: User ID to filter books (optional)
+            sort_by: Sorting method - "recent" (default), "title", "author"
             
         Returns:
             List of book dictionaries
         """
+        # Validate sort_by parameter
+        valid_sorts = {"recent", "title", "author"}
+        if sort_by not in valid_sorts:
+            sort_by = "recent"
+        
+        # Build ORDER BY clause
+        if sort_by == "title":
+            order_clause = "ORDER BY LOWER(title) ASC"
+        elif sort_by == "author":
+            order_clause = "ORDER BY LOWER(author) ASC, LOWER(title) ASC"
+        else:  # recent
+            order_clause = "ORDER BY created_at DESC"
+        
         cursor = self.conn.cursor()
         if user_id is not None:
             # Get books belonging to user or with no owner
             cursor.execute(
-                "SELECT * FROM books WHERE user_id = ? OR user_id IS NULL ORDER BY created_at DESC",
+                f"SELECT * FROM books WHERE user_id = ? OR user_id IS NULL {order_clause}",
                 (user_id,)
             )
         else:
             # No user specified (backwards compatibility)
-            cursor.execute("SELECT * FROM books ORDER BY created_at DESC")
+            cursor.execute(f"SELECT * FROM books {order_clause}")
         return [dict(row) for row in cursor.fetchall()]
     def search_books_by_title(self, title: str) -> List[dict]:
         """Search for books by title."""

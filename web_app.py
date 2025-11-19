@@ -221,8 +221,12 @@ def allowed_file(filename):
 def index():
     """Home page showing list of books."""
     user_id = current_user.id if current_user.is_authenticated else None
-    books = db.get_all_books(user_id=user_id)
-    return render_template('index.html', books=books, ai_available=ai_service is not None)
+    sort_by = request.args.get('sort', 'recent')
+    # Validate sort parameter
+    if sort_by not in ['recent', 'title', 'author']:
+        sort_by = 'recent'
+    books = db.get_all_books(user_id=user_id, sort_by=sort_by)
+    return render_template('index.html', books=books, ai_available=ai_service is not None, current_sort=sort_by)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -615,6 +619,49 @@ def edit_summary(book_id):
             return redirect(url_for('view_book', book_id=validated_id))
     
     return render_template('edit_summary.html', book=book, ai_available=ai_service is not None)
+
+
+@app.route('/book/<int:book_id>/generate-summary', methods=['POST'])
+@login_required
+@limiter.limit(rate_limit_config['ai_summary'])
+def generate_single_summary(book_id):
+    """Generate summary for a single book with rate limiting."""
+    try:
+        validated_id = validate_book_id(book_id)
+        book = db.get_book(validated_id, user_id=current_user.id)
+    except ValidationError as e:
+        logger.warning(f"Invalid book_id in generate_single_summary: {book_id} - {e}")
+        flash('Invalid book ID.', 'error')
+        return redirect(url_for('index'))
+    
+    if not book:
+        flash('Book not found or access denied.', 'error')
+        return redirect(url_for('index'))
+    
+    if not ai_service:
+        flash('AI service not available. Please configure API key.', 'error')
+        return redirect(url_for('view_book', book_id=validated_id))
+    
+    # Skip if already has summary
+    if book.get('summary'):
+        flash(f'"{book["title"]}" already has a summary.', 'info')
+        return redirect(url_for('view_book', book_id=validated_id))
+    
+    # Rate limiting
+    session_id = request.remote_addr or 'unknown'
+    if not check_ai_rate_limit(session_id):
+        flash('Rate limit reached. Please wait before generating.', 'warning')
+        return redirect(url_for('view_book', book_id=validated_id))
+    
+    try:
+        summary = ai_service.generate_summary(book['title'], book['author'])
+        db.update_summary(validated_id, summary, user_id=current_user.id)
+        flash(f'Summary generated for "{book["title"]}".', 'success')
+    except Exception as e:
+        logger.error(f"Failed to generate summary for book {validated_id}: {e}")
+        flash(f'Failed to generate summary: {str(e)}', 'error')
+    
+    return redirect(url_for('view_book', book_id=validated_id))
 
 
 @app.route('/flashcards')
